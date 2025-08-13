@@ -1,0 +1,8 @@
+<{components::modals::modal} popover_id="add-piscine-modal" title="Ajouter date piscine" action_label="Ajouter"
+  endpoint="/api/piscine">
+  <div class="modal-body-container">
+    <{components::heading} title="Ajout de scéance" subtitle="Ajouter une date de scéance piscine" />
+    <input type="hidden" name="action" value="create" />
+    <{components::inputs::input} label="Date" name="date" type="date" required />
+  </div>
+</{components::modals::modal}>

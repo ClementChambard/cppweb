@@ -1,0 +1,3 @@
+#!/bin/sh
+
+sudo ss state time-wait sport = 8080 -K

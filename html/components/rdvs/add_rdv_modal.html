@@ -1,0 +1,9 @@
+<{components::modals::modal} popover_id="add-rdv-modal" title="Ajouter rdv" footer="" action_label="Ajouter"
+  endpoint="/api/rdvs">
+  <div class="modal-body-container">
+    <{components::heading} title="Ajout d'horaire" subtitle="Ajouter un horaire pour un rendez-vous" />
+    <input type="hidden" name="action" value="create" />
+    <{components::inputs::time_input} label="Horaire" minute_name="minute" hour_name="hour" />
+    <!--checbox:inactif-->
+  </div>
+</{components::modals::modal}>

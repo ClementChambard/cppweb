@@ -1,0 +1,7 @@
+<{components::modals::modal} popover_id="reserve-piscine-modal-{{piscine_id}}" title="Réservation"
+  action_label="Réserver" footer="" endpoint="/api/piscine/{{piscine_id}}">
+  <div class="modal-body-container">
+    <{components::heading} title="Reservation pour la piscine" subtitle="Entrez votre nom :" />
+    <{components::inputs::input} label="Nom" name="parent" type="text" required />
+  </div>
+</{components::modals::modal}>

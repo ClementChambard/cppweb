@@ -1,0 +1,11 @@
+<{components::modals::modal} popover_id="fillin-roller-modal-{{roller_id}}" title="Sondage" action_label="Enregistrer"
+  endpoint="/api/rollers/{{roller_id}}">
+  <div class="modal-body-container">
+    <{components::heading} title="Réponses" subtitle="Renseigner la pointure si vous n'avez pas de rollers" />
+    <input type="hidden" name="has_answered" value="1" />
+    <{components::inputs::checkbox} label="Avez vous des rollers ?" name="has_roller" value="1" {{has_roller?{{checked}}}} />
+    <{components::inputs::checkbox} label="Avez vous un casque ?" name="has_helmet" value="1" {{has_helmet?{{checked}}}} />
+    <{components::inputs::checkbox} label="Avez vous des protections ?" name="has_protect" value="1" {{has_protect?{{checked}}}} />
+    <{components::inputs::input} label="Pointure" name="size" type="number" value="{{size}}" required />
+  </div>
+</{components::modals::modal}>

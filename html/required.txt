@@ -1,0 +1,9 @@
+page::*
+components::sondage_button
+components::sondage_edit_card
+components::rdvs::rdv_card
+components::rdvs::admin_rdv_card
+components::piscine::piscine_card
+components::piscine::admin_piscine_card
+components::rollers::roller_card
+components::rollers::admin_roller_card

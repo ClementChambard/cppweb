@@ -1,0 +1,14 @@
+<div class="checkbox-container">
+  <div class="checkbox-text">{{label}}: </div>
+  <div class="text-input-right">
+    <div class="text-input-sub-container">
+      <input name="{{hour_name}}" {{hour?{{value="{{hour}}"}}}} placeholder="heure" type="number"
+        class="transition text-input-input" />
+    </div>
+    <div class="text-md px-4">h</div>
+    <div class="text-input-sub-container">
+      <input name="{{minute_name}}" {{minute?{{value="{{minute}}"}}}} placeholder="minute" type="number"
+        class="transition text-input-input" />
+    </div>
+  </div>
+</div>

@@ -1,0 +1,4 @@
+build/
+.cache/
+server
+console.log

@@ -1,0 +1,14 @@
+<{components::piscine::edit_piscine_modal} piscine_id="{{id}}" date="{{date}}" parent="{{parent}}" />
+<{components::admin_card} kind="piscine" edit_modal="edit-piscine-modal-{{id}}" index="{{id}}">
+  <div class="text-id">
+    {{id}}
+  </div>
+  <div class="text-semibold">{{date_formatted}}</div>
+  {{answered?{{
+  <div class="adjacent-text">
+    Réservé par <span class="rdv-card-name-text">{{parent}}</span>
+  </div>
+  }}?{{
+  <div class="text-color-ok">Libre</div>
+  }}}}
+</{components::admin_card}>

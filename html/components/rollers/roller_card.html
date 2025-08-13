@@ -1,0 +1,21 @@
+<{components::rollers::fillin_roller_modal} roller_id="{{id}}" {{has_roller?{{has_roller}}}}
+  {{has_helmet?{{has_helmet}}}} {{has_protect?{{has_protect}}}} size="{{size}}" />
+<{components::sondage_card} modal_name="fillin-roller-modal-{{id}}" button_text="Répondre" name="{{student}}"
+  {{done?{{done}}}}>
+  <div class="roller-card-left">
+    <div class="roller-hasroller-line">
+      <div class="{{has_roller?{{text-color-ok}}?{{text-color-bad}}}}">Roller</div>
+      {{has_roller?{{}}?{{
+      <span class="text-color-none">{{size}}</span>
+      }}}}
+    </div>
+    <div class="{{has_helmet?{{text-color-ok}}?{{text-color-bad}}}}">Casque</div>
+    <div class="{{has_protect?{{text-color-ok}}?{{text-color-bad}}}}">Protections</div>
+  </div>
+  <div style="flex:1;">
+    <button class="btn-component reduce-icon outline" type="button" popovertarget="fillin-roller-modal-{{id}}">
+      <{components::icon} size="24" icon="edit" class="btn-component-icon" />
+      <span class="btn-component-label">Modifier</span>
+    </button>
+  </div>
+</{components::sondage_card}>

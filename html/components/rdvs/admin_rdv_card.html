@@ -1,0 +1,18 @@
+<{components::rdvs::edit_rdv_modal} rdv_id="{{id}}" student="{{student}}" hour="{{hour}}" minute="{{minute}}" />
+<{components::admin_card} kind="rdvs" edit_modal="edit-rdv-modal-{{id}}" index="{{id}}">
+  <div class="text-id">
+    {{id}}
+  </div>
+  <div class="text-semibold">{{time}}</div>
+  {{inactive?{{
+  <div class="text-color-none">Inactif</div>
+  }}?{{
+  {{free?{{
+  <div class="text-color-ok">Libre</div>
+  }}?
+  {{
+  <div class="adjacent-text">
+    Réservé par <span class="rdv-card-name-text">{{student}}</span>
+  </div>
+  }}}}}}}}
+</{components::admin_card}>

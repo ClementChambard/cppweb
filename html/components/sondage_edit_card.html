@@ -1,0 +1,19 @@
+<{components::modals::edit_sondage_modal} sondage_id="{{id}}" name="{{name}}" button_text="{{button_text}}"
+  info="{{info}}" />
+<div class="sondage-edit-card-container">
+  <a class="sondage-edit-card-link" href="/admin/sondages/{{name}}">
+    <div class="sondage-edit-card-name transition">
+      {{name}}
+    </div>
+  </a>
+  <form class="sondage-edit-card-right" method="post" action="/api/sondages/{{id}}">
+    <input name="active" type="hidden" value="{{active?{{0}}?{{1}}}}" />
+    <button class="btn-component {{active?{{}}?{{gray}}}}" type="submit">
+      {{active?{{actif}}?{{inactif}}}}
+    </button>
+    <button class="btn-component reduce-icon outline" popovertarget="edit-sondage-modal-{{id}}" type="button">
+      <{components::icon} size="24" icon="settings" class="btn-component-icon" />
+      <span class="btn-component-label">propriétés</span>
+    </button>
+  </form>
+</div>

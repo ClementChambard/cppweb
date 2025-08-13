@@ -1,0 +1,7 @@
+<{components::modals::modal} popover_id="edit-roller-modal-{{roller_id}}" title="Modifier élève" action_label="Modifier"
+  endpoint="/api/rollers/{{roller_id}}">
+  <div class="modal-body-container">
+    <{components::heading} title="Modification de roller" subtitle="Modifier {{roller_id}}" />
+    <{components::inputs::input} label="Nom" name="student" type="text" value="{{student}}" required />
+  </div>
+</{components::modals::modal}>

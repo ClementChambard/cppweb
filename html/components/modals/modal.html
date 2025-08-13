@@ -1,0 +1,25 @@
+<div class="modal-popover" popover id="{{popover_id}}">
+  <div class="modal-container">
+    <div class="modal-transition">
+      <form class="modal-box" method="post" action="{{endpoint}}">
+        <div class="modal-header">
+          <button type="button" popovertarget="{{popover_id}}" class="modal-close transition">
+            <{components::icon} size="18" icon="close" />
+          </button>
+          <div class="modal-title">{{title}}</div>
+        </div>
+        <div class="modal-body">{{children}}</div>
+        <div class="modal-footer">
+          <div class="modal-buttons">
+            {{2nd_action_label?{{
+            <button class="btn-component transition outline" onClick="{{handleSecondaryAction}}">
+              {{2nd_action_label}}
+            </button>}}}}
+            <input class="btn-component transition" type="submit" value="{{action_label}}" />
+          </div>
+          {{footer?}}
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

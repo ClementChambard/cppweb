@@ -1,0 +1,11 @@
+<{components::modals::modal} popover_id="edit-rdv-modal-{{rdv_id}}" title="Modifier rdv" action_label="Modifier"
+  endpoint="/api/rdvs/{{rdv_id}}">
+  <div class="modal-body-container">
+    <{components::heading} title="Modification de rdv" subtitle="Modifier le rendez-vous {{rdv_id}}" />
+    <{components::inputs::time_input} label="Horaire" minute_name="minute" hour_name="hour" minute="{{minute}}"
+      hour="{{hour}}" />
+    <!--checbox:inactif-->
+    <!--second bouton: liberer-->
+    <{components::inputs::input} label="Nom" name="student" type="text" value="{{student}}" required />
+  </div>
+</{components::modals::modal}>

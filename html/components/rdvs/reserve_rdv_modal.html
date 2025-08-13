@@ -1,0 +1,8 @@
+<{components::modals::modal} popover_id="reserve-rdv-modal-{{rdv_id}}" title="Réservation" action_label="Réserver"
+  footer="" endpoint="/api/rdvs/{{rdv_id}}">
+  <div class="modal-body-container">
+    <{components::heading} title="Réservation pour le rendez-vous de {{time}}"
+      subtitle="Vous assistez au rendez-vous pour :" />
+    <{components::inputs::input} label="Nom" name="student" type="text" required />
+  </div>
+</{components::modals::modal}>

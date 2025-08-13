@@ -1,0 +1,8 @@
+<{components::modals::modal} popover_id="edit-sondage-modal-{{sondage_id}}" title="Modifier Sondage"
+  action_label="Modifier" endpoint="/api/sondages/{{sondage_id}}">
+  <div class="modal-body-container">
+    <{components::heading} title="Modification de sondage" subtitle="Modifier le sondage {{name}}" />
+    <{components::inputs::input} name="btn_text" label="Texte du bouton" value="{{button_text}}" />
+    <{components::inputs::input} name="desc" label="Description" value="{{info}}" />
+  </div>
+</{components::modals::modal}>

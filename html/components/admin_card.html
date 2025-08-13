@@ -1,0 +1,15 @@
+<div class="admin-card-container">
+  <div class="admin-card-left">{{children}}</div>
+  <form class="admin-card-right" method="post" action="/api/{{kind}}">
+    <input type="hidden" name="action" value="delete" />
+    <input type="hidden" name="id" value="{{index}}" />
+    <button class="btn-component reduce-icon" type="button" popovertarget="{{edit_modal}}">
+      <{components::icon} size="24" icon="edit" class="btn-component-icon" />
+      <span class="btn-component-label">modifier</span>
+    </button>
+    <button class="btn-component reduce-icon" type="submit">
+      <{components::icon} size="24" icon="delete" class="btn-component-icon" />
+      <span class="btn-component-label">supprimer</span>
+    </button>
+  </form>
+</div>

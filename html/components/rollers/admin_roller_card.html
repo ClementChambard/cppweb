@@ -1,0 +1,17 @@
+<{components::rollers::edit_roller_modal} roller_id="{{id}}" student="{{student}}" />
+<{components::admin_card} kind="rollers" edit_modal="edit-roller-modal-{{id}}" index="{{id}}">
+  <div class="text-id">
+    {{id}}
+  </div>
+  <div class="text-semibold">{{student}}</div>
+  <div class="roller-admin-card-text-line">
+    {{answered?{{
+    <div class="{{has_roller?{{text-color-ok}}?{{text-color-bad}}}}">Rollers</div>
+    <div class="{{has_helmet?{{text-color-ok}}?{{text-color-bad}}}}">Casque</div>
+    <div class="{{has_protect?{{text-color-ok}}?{{text-color-bad}}}}">Protections</div>
+    {{has_roller?{{}}?{{<div>{{size}}</div>}}}}
+    }}?{{
+    <div class="text-color-wait">En attente de réponse</div>
+    }}}}
+  </div>
+</{components::admin_card}>

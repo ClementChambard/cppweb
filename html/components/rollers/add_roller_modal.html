@@ -1,0 +1,8 @@
+<{components::modals::modal} popover_id="add-roller-modal" title="Ajouter élève" action_label="Ajouter"
+  endpoint="/api/rollers">
+  <div class="modal-body-container">
+    <{components::heading} title="Ajout d'élève" subtitle="Ajouter un élève pour le sondage des rollers" />
+    <input type="hidden" name="action" value="create" />
+    <{components::inputs::input} label="Nom" name="student" type="text" required />
+  </div>
+</{components::modals::modal}>

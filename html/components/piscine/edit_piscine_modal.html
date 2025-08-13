@@ -1,0 +1,8 @@
+<{components::modals::modal} popover_id="edit-piscine-modal-{{piscine_id}}" title="Modifier piscine" action_label="Modifier"
+  endpoint="/api/piscine/{{piscine_id}}">
+  <div class="modal-body-container">
+    <{components::heading} title="Modification de roller" subtitle="Modifier {{piscine_id}}" />
+    <{components::inputs::input} label="Date" name="date" type="date" value="{{date}}" required />
+    <{components::inputs::input} label="Nom" name="parent" value="{{parent}}" />
+  </div>
+</{components::modals::modal}>
