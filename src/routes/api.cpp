@@ -14,6 +14,7 @@ http::Response api::check_admin(http::Request r) {
         .code(303)
         .header("location", "/admin/sondages")
         .header("Set-cookie", "sessionId=abc123; Path=/")
+        .emptybody()
         .close()
         .build();
   } else {
@@ -51,6 +52,7 @@ http::Response api::sondages_id(http::Request r) {
   return http::Response::Builder()
       .code(303)
       .header("location", r.header("Referer").c_str())
+      .emptybody()
       .close()
       .build();
 }

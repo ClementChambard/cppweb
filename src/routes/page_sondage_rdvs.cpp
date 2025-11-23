@@ -15,6 +15,7 @@ std::string page::sondage_rdvs(http::Request r) {
           if (m.size() == 1)
             m = '0' + m;
           h += m;
+          h = s->txt + ' ' + h;
 
           PARAM("id", id);
           PARAM("time", h);

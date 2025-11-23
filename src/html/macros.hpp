@@ -5,52 +5,40 @@
 
 #include "html/code_builder.hpp"
 #include <string>
-#include <unordered_map>
-#include <vector>
 
-struct html_test {
-  html_test(std::string n) : name(n) {}
-  void add_child(html_test t) { children.push_back(t); }
-
-  std::vector<html_test> children = {};
-
-  void param(std::string k, int value) { params[k] = std::to_string(value); }
-  void param(std::string k, std::string value) { params[k] = value; }
-
+struct __build_context {
+  __build_context(char const *name, __build_context *parent = nullptr)
+      : builder(name), parent(parent) {}
+  html::CodeBuilder builder;
+  std::string children_str;
+  __build_context *parent;
   int i = 0;
-  std::string name;
-  std::unordered_map<std::string, std::string> params = {};
-
-  std::string build() {
-    auto builder = html::CodeBuilder(name.c_str());
-    for (auto [k, v] : params) {
-      builder.placeholder(k.c_str(), v.c_str());
-    }
-    std::string children_str = "";
-    for (auto c : children) {
-      children_str += c.build();
-    }
+  bool cond() const { return i < 1; }
+  std::string latch() {
+    i++;
     builder.placeholder("children", children_str.c_str());
-    return builder.build();
+    if (parent) {
+      parent->children_str += builder.build();
+      return "";
+    } else {
+      return builder.build();
+    }
   }
 };
 
 #define DECLARE_HTML(var, name)                                                \
-  std::string var = "";                                                        \
-  for (auto __builder = html_test(name); __builder.i < 1;                      \
-       __builder.i++, var = __builder.build())
+  std::string var;                                                             \
+  for (__build_context __ctx{name}; __ctx.cond(); var = __ctx.latch())
 
 #define CHILD(name)                                                            \
-  for (auto &__parent_builder = __builder, __builder = html_test(name);        \
-       __builder.i < 1; __builder.i++, __parent_builder.add_child(__builder))
+  for (__build_context *p = &__ctx, __ctx{name, p}; __ctx.cond(); __ctx.latch())
 
-#define PARAM(key, value) __builder.param(key, value)
+#define PARAM(name, value) __ctx.builder.placeholder(name, value)
 
 #define PARAM_OPT(key, boolean)                                                \
   if (boolean)                                                                 \
-  PARAM(key, 1)
+  PARAM(key, "1")
 
-#define ADD_HTML(txt)                                                          \
-  CHILD("components::value_only") { PARAM("value", txt); }
+#define ADD_HTML(txt) __ctx.children_str += txt;
 
 #endif // !IG_HTML_MACROS_HPP

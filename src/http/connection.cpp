@@ -62,9 +62,10 @@ void client_thread(Connection *self) {
     sys::info("------ Received Request from client ------");
     Request r = Request::parse(buffer);
 
-    // sys::info("%s\n", std::string(r).c_str());
+    sys::info("%s\n", std::string(r).c_str());
 
     process_request(*self, r);
+    // break;
   }
 
   close(self->m_socket);

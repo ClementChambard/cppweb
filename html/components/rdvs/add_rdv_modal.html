@@ -4,6 +4,7 @@
     <{components::heading} title="Ajout d'horaire" subtitle="Ajouter un horaire pour un rendez-vous" />
     <input type="hidden" name="action" value="create" />
     <{components::inputs::time_input} label="Horaire" minute_name="minute" hour_name="hour" />
+    <{components::inputs::input} label="Date" name="txt" type="text" required />
     <!--checbox:inactif-->
   </div>
 </{components::modals::modal}>

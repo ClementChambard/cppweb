@@ -54,10 +54,11 @@ void Rdv::read(std::string_view &sv) {
   heure = std::stoi(std::string(db_next_line(sv)));
   minute = std::stoi(std::string(db_next_line(sv)));
   eleve = std::string(db_next_line(sv));
+  txt = std::string(db_next_line(sv));
 }
 
 void Rdv::write(std::ostringstream &out) const {
-  out << heure << '\n' << minute << '\n' << eleve << '\n';
+  out << heure << '\n' << minute << '\n' << eleve << '\n' << txt << '\n';
 }
 
 void Rollers::read(std::string_view &sv) {

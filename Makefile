@@ -8,10 +8,10 @@ WARNING_FLAGS = -Wall -Wextra -Werror -Wno-unused-parameter
 INCLUDE_FLAGS = -I$(PROJECT_ROOT)/src
 
 export CXXFLAGS_COMMON = -std=$(CXX_STANDARD) $(INCLUDE_FLAGS) $(WARNING_FLAGS)
-export CXXFLAGS_DEBUG = $(CXXFLAGS_COMMON) -g
+export CXXFLAGS_DEBUG = $(CXXFLAGS_COMMON) -g -fsanitize=address
 export CXXFLAGS_RELEASE = $(CXXFLAGS_COMMON) -O4 -DRELEASE
 export CXXFLAGS = $(CXXFLAGS_DEBUG)
-export LDFLAGS =
+export LDFLAGS = -fsanitize=address
 
 .PHONY: $(EXE) all clean run always bear release clean_release
 

@@ -33,6 +33,10 @@ struct Response::Builder {
     return header("Content-Type", type.c_str())
         .header("Content-Length", std::to_string(body.size()).c_str());
   }
+  Builder &emptybody() {
+    m_obj.body = "";
+    return header("Content-Length", "0");
+  }
   Builder &code(u32 code) {
     m_obj.code = code;
     return *this;

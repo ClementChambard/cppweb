@@ -8,26 +8,29 @@ http::Response api::rdvs_id(http::Request r) {
   r.body_as_params();
   i32 idx = r.int_param("id");
   RdvsDb::lock();
-  auto old_time =
-      RdvsDb::get().items[idx].heure * 60 + RdvsDb::get().items[idx].minute;
+  // auto old_time =
+  //     RdvsDb::get().items[idx].heure * 60 + RdvsDb::get().items[idx].minute;
   RdvsDb::get().items[idx].heure =
       r.int_param("hour", RdvsDb::get().items[idx].heure);
   RdvsDb::get().items[idx].minute =
       r.int_param("minute", RdvsDb::get().items[idx].minute);
   RdvsDb::get().items[idx].eleve =
       r.string_param("student", RdvsDb::get().items[idx].eleve.c_str());
-  if (old_time !=
-      RdvsDb::get().items[idx].heure * 60 + RdvsDb::get().items[idx].minute)
-    std::sort(RdvsDb::get().items.begin(), RdvsDb::get().items.end(),
-              [](auto a, auto b) -> bool {
-                return a.heure < b.heure ||
-                       (a.heure == b.heure && a.minute < b.minute);
-              });
+  RdvsDb::get().items[idx].txt =
+      r.string_param("txt", RdvsDb::get().items[idx].txt.c_str());
+  // if (old_time !=
+  //     RdvsDb::get().items[idx].heure * 60 + RdvsDb::get().items[idx].minute)
+  //   std::sort(RdvsDb::get().items.begin(), RdvsDb::get().items.end(),
+  //             [](auto a, auto b) -> bool {
+  //               return a.txt < b.txt || (a.txt == b.txt && (a.heure < b.heure ||
+  //                      (a.heure == b.heure && a.minute < b.minute)));
+  //             });
   RdvsDb::get().write();
   RdvsDb::unlock();
   return http::Response::Builder()
       .code(303)
       .header("location", r.header("Referer").c_str())
+      .emptybody()
       .close()
       .build();
 }
@@ -55,13 +58,14 @@ http::Response api::rdvs(http::Request r) {
     rdv.heure = r.int_param("hour");
     rdv.minute = r.int_param("minute");
     rdv.eleve = r.string_param("student");
+    rdv.txt = r.string_param("txt");
     RdvsDb::lock();
     RdvsDb::get().items.push_back(rdv);
-    std::sort(RdvsDb::get().items.begin(), RdvsDb::get().items.end(),
-              [](auto a, auto b) -> bool {
-                return a.heure < b.heure ||
-                       (a.heure == b.heure && a.minute < b.minute);
-              });
+    // std::sort(RdvsDb::get().items.begin(), RdvsDb::get().items.end(),
+    //           [](auto a, auto b) -> bool {
+    //             return a.txt < b.txt || (a.txt == b.txt && (a.heure < b.heure ||
+    //                    (a.heure == b.heure && a.minute < b.minute)));
+    //           });
     RdvsDb::get().write();
     RdvsDb::unlock();
   } else {
@@ -70,6 +74,7 @@ http::Response api::rdvs(http::Request r) {
   return http::Response::Builder()
       .code(303)
       .header("location", r.header("Referer").c_str())
+      .emptybody()
       .close()
       .build();
 }

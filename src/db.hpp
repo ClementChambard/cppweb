@@ -76,6 +76,7 @@ struct Rdv {
   u32 heure;
   u32 minute;
   std::string eleve;
+  std::string txt;
   void read(std::string_view &);
   void write(std::ostringstream &) const;
 };

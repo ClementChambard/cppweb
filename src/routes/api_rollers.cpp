@@ -28,6 +28,7 @@ http::Response api::rollers_id(http::Request r) {
   return http::Response::Builder()
       .code(303)
       .header("location", r.header("Referer").c_str())
+      .emptybody()
       .close()
       .build();
 }
@@ -70,6 +71,7 @@ http::Response api::rollers(http::Request r) {
   return http::Response::Builder()
       .code(303)
       .header("location", r.header("Referer").c_str())
+      .emptybody()
       .close()
       .build();
 }
