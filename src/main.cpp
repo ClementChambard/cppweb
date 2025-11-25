@@ -10,6 +10,8 @@
 int main() {
   sys::logger::initialize();
 
+  sys::info("====== SERVER INITIALIZING ... ======");
+
   html::Page root_page("root", page::root);
   html::Page rdv_page("rdv", page::sondage_rdvs);
   html::Page roller_page("roller", page::sondage_rollers);

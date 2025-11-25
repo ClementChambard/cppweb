@@ -28,6 +28,10 @@ div {
   display: block;
 }
 
+script {
+  display: none;
+}
+
 [popover]::backdrop {
   position: fixed;
   inset: 0;

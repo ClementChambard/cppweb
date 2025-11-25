@@ -136,11 +136,16 @@ std::string request_kind_to_string(Request::Kind k) {
   return "ERROR";
 }
 
+std::string Request::first_line() {
+  std::ostringstream oss;
+  oss << request_kind_to_string(kind) << " " << endpoint << " " << protocol;
+  return oss.str();
+}
+
 Request::operator std::string() {
   // if (kind == Kind::ERROR) return "INVALID REQUEST";
   std::ostringstream oss;
-  oss << request_kind_to_string(kind) << " " << endpoint << " " << protocol
-      << "\n";
+  oss << first_line() << "\n";
   for (auto [key, value] : headers) {
     oss << key << ": " << value << "\n";
   }

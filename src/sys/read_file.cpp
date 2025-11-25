@@ -7,10 +7,10 @@ namespace sys {
 std::string read_text_file(char const *filename) {
   std::ifstream f(filename);
   if (f.bad()) {
-    error("INVALID FILE: %s", filename);
+    error("   * INVALID FILE: %s", filename);
     return "";
   }
-  info("READING %s", filename);
+  info("   * READING %s", filename);
   f.seekg(0, std::ios::end);
   auto size = f.tellg();
   f.seekg(0, std::ios::beg);
@@ -23,10 +23,10 @@ std::string read_text_file(char const *filename) {
 void write_text_file(char const *filename, std::string_view data) {
   std::ofstream f(filename);
   if (f.bad()) {
-    error("INVALID FILE: %s", filename);
+    error("   * INVALID FILE: %s", filename);
     return;
   }
-  info("WRITING %s", filename);
+  info("   * WRITING %s", filename);
   f.write(data.data(), data.size());
 }
 

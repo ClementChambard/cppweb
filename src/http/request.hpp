@@ -27,6 +27,8 @@ struct Request {
   static Request parse(std::string_view http_request);
   operator std::string();
 
+  std::string first_line();
+
   std::string header(char const *name, char const *default_value = "");
 
   std::string string_param(char const *name, char const *default_value = "");

@@ -1,8 +1,7 @@
-<{components::rdvs::reserve_rdv_modal} rdv_id="{{id}}" time="{{time}}" />
-<{components::sondage_card} modal_name="reserve-rdv-modal-{{id}}" button_text="Réserver" name="{{time}}"
+<{components::sondage_card2} id="{{id}}" onclick="open_rdv_modal" button_text="Réserver" name="{{time}}"
   {{done?{{done}}}}>
   <div class="rdv-card-container adjacent-text">
     <span class="rdv-card-pre-text">Réservé par</span>
     <span class="rdv-card-name-text">{{student}}</span>
   </div>
-</{components::sondage_card}>
+</{components::sondage_card2}>

@@ -4,7 +4,7 @@
 
 std::string page::sondage_rdvs(http::Request r) {
   DECLARE_HTML(html, "page::layout") {
-    CHILD("page::sondage::layout") {
+    CHILD("page::sondage::rdvs") {
       PARAM("info", get_sondage_desc(r.endpoint.c_str()));
       ITER_DB(s, id, RdvsDb) {
         CHILD("components::rdvs::rdv_card") {

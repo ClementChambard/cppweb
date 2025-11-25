@@ -1,0 +1,14 @@
+<div class="sondage-card-container">
+  <div class="sondage-card-name">
+    {{name}}
+  </div>
+  <div class="sondage-card-right">
+    {{done?{{{{children}}}}?{{
+      <button
+        onclick="{{onclick}}({{id}},'{{name}}')"
+        class="sondage-card-button transition"
+      >
+      {{button_text}}
+      </button>}}}}
+  </div>
+</div>

@@ -28,9 +28,15 @@ std::string code_string(u32 code) {
   return std::to_string(code) + name;
 }
 
+std::string Response::first_line() {
+  std::ostringstream oss;
+  oss << "HTTP/1.1 " << code_string(code);
+  return oss.str();
+}
+
 Response::operator std::string() {
   std::ostringstream oss;
-  oss << "HTTP/1.1 " << code_string(code) << "\r\n";
+  oss << first_line() << "\r\n";
   for (auto [key, value] : headers) {
     oss << key << ": " << value << "\r\n";
   }

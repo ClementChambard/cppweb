@@ -18,6 +18,7 @@ struct Response {
   static Response bad_request();
   static Response unauthorized();
 
+  std::string first_line();
   operator std::string();
 
   struct Builder;

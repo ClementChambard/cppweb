@@ -5,9 +5,15 @@
 
 namespace http {
 
-char const *get_char(char c1, char c2) {
-  if (c1 == '2' && c2 == '7') return "'";
-  return "%";
+char get_pcchar(char c1, char c2) {
+  auto digit = [](char c) -> int {
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+    sys::error("   * INVALID CHARACTER IN %%XX SEQUENCE");
+    return 0;
+  };
+  return static_cast<char>(0x10 * digit(c1) + digit(c2));
 }
 
 std::string decode_param(std::string_view param) {
@@ -20,27 +26,37 @@ std::string decode_param(std::string_view param) {
   }
   loc = prev_loc = 0;
   while ((loc = p.find('%', prev_loc)) != std::string::npos) {
-    p.replace(loc, 3, get_char(p[loc + 1], p[loc + 2]));
+    auto c = get_pcchar(p[loc + 1], p[loc + 2]);
+    p.replace(loc, 3, "X");
+    p[loc] = c; // TODO: is that good ?
     prev_loc = loc + 1;
   }
   return p;
 }
 
 static void url_param(std::string_view par, UrlParams &params) {
-  auto equals_loc = par.find('=');
-  if (equals_loc == std::string_view::npos) {
-    sys::error("INVALID URL PARAMETER: %*s", par.size(), par.data());
+  if (par.empty()) {
+    sys::error("   * EMPTY URL PARAMETER");
     return;
   }
-  auto name = par.substr(0, equals_loc);
+  auto equals_loc = par.find('=');
+  if (equals_loc == std::string_view::npos) {
+    sys::error("   * MISSING '=' IN URL PARAMETER: %*s", par.size(), par.data());
+    return;
+  }
+  auto name = decode_param(par.substr(0, equals_loc));
   if (equals_loc + 1 == par.size()) {
-    params[std::string(name)] = "";
+    params[name] = "";
   } else {
-    params[std::string(name)] = decode_param(par.substr(equals_loc + 1));
+    params[name] = decode_param(par.substr(equals_loc + 1));
   }
 }
 
 void url_params(std::string_view str, UrlParams &params) {
+  if (str.empty()) {
+    sys::warn("   * PARSING EMPTY URL PARAMETER");
+    return;
+  }
   u64 loc = 0;
   u64 prev_loc = loc;
   while ((loc = str.find('&', prev_loc)) != std::string::npos) {
