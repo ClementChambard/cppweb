@@ -1,8 +1,8 @@
 #include "components.hpp"
 #include "defines.hpp"
-#include "html/code_instance.hpp"
-#include "parse_help.hpp"
 #include "sys/logger.hpp"
+#include "sys/read_file.hpp"
+#include "http/resource.hpp"
 #include <string_view>
 #include <unordered_map>
 
@@ -18,7 +18,7 @@ struct Tag {
   TagParams params;
 };
 
-void skip_spaces(std::string_view &s) {
+static void skip_spaces(std::string_view &s) {
   if (s.size() == 0)
     return;
   u64 pos = 0;
@@ -27,19 +27,12 @@ void skip_spaces(std::string_view &s) {
   s = s.substr(pos);
 }
 
-void skip_1(std::string_view &s) {
-  if (s.size() == 0)
-    return;
-  s = s.substr(1);
-}
-
-std::string_view read_balanced(std::string_view &s, char const *beg,
-                               char const *end) {
+static std::string_view read_balanced(std::string_view &s) {
   u32 n = 1;
   u64 pos = 0;
   while (true) {
-    auto beg_pos = s.find(beg, pos);
-    auto end_pos = s.find(end, pos);
+    auto beg_pos = s.find("{{", pos);
+    auto end_pos = s.find("}}", pos);
     if (beg_pos < end_pos) {
       n++;
       pos = beg_pos + 2;
@@ -59,30 +52,7 @@ std::string_view read_balanced(std::string_view &s, char const *beg,
   return res;
 }
 
-std::string_view split_at(std::string_view &s, u64 pos, bool include) {
-  std::string_view ret;
-  if (s.size() == pos) {
-    ret = s;
-  } else {
-    ret = s.substr(0, pos);
-    if (!include)
-      pos++;
-  }
-  s = s.substr(pos);
-  return ret;
-}
-
-std::string_view get_until_space_or(std::string_view &s, char const *orelse) {
-  std::string_view oe = orelse;
-  u64 pos = 0;
-  while (pos < s.size() && !oe.contains(s[pos]) && !std::isspace(s[pos]))
-    pos++;
-  std::string_view ret = split_at(s, pos);
-  skip_spaces(s);
-  return ret;
-}
-
-std::string_view parse_ident(std::string_view &s) {
+static std::string_view parse_ident(std::string_view &s) {
   u64 pos = 0;
   while (pos < s.size() &&
          ((s[pos] >= '0' && s[pos] <= '9') ||
@@ -90,47 +60,14 @@ std::string_view parse_ident(std::string_view &s) {
           (s[pos] >= 'A' && s[pos] <= 'Z') || s[pos] == '_')) {
     pos++;
   }
-  return split_at(s, pos);
-}
-
-std::string parse_strlit(std::string_view &s) {
-  std::string out;
-  out.reserve(8);
-  if (!s.starts_with('"')) {
-    // ERROR: TODO
-    return "";
+  std::string_view ret;
+  if (s.size() == pos) {
+    ret = s;
+  } else {
+    ret = s.substr(0, pos);
   }
-  s = s.substr(1);
-  while (true) {
-    if (s[0] == '"')
-      break;
-    if (s[0] == '\\') {
-      s = s.substr(1);
-    }
-    out.push_back(s[0]);
-    s = s.substr(1);
-  }
-  return out;
-}
-
-void parse_params(std::string_view &s,
-                  std::unordered_map<std::string, std::string> &params) {
-  while (true) {
-    if (s.size() == 0 || s.starts_with('/') || s.starts_with('>'))
-      return;
-    auto param_name = parse_ident(s);
-    skip_spaces(s);
-    if (!s.starts_with('=')) {
-      params[std::string(param_name)] = "1";
-      continue;
-    }
-    s = s.substr(1);
-    skip_spaces(s);
-    std::string param_value = parse_strlit(s);
-    s = s.substr(1); // final '"'
-    params[std::string(param_name)] = param_value;
-    skip_spaces(s);
-  }
+  s = s.substr(pos);
+  return ret;
 }
 
 Tag parse_tag(std::string_view tag_strview) {
@@ -150,7 +87,16 @@ Tag parse_tag(std::string_view tag_strview) {
   t.is_component = true;
   tag_strview = tag_strview.substr(1);
   skip_spaces(tag_strview);
-  t.name = get_until_space_or(tag_strview, "}");
+  u64 pos = 0;
+  while (pos < tag_strview.size() && tag_strview[pos] != '}' && !std::isspace(tag_strview[pos]))
+    pos++;
+  if (tag_strview.size() == pos) {
+    t.name = tag_strview;
+  } else {
+    t.name = tag_strview.substr(0, pos);
+  }
+  tag_strview = tag_strview.substr(pos);
+  skip_spaces(tag_strview);
   if (tag_strview.size() == 0 || tag_strview[0] != '}') {
     // ERROR:
     t.is_component = false;
@@ -158,7 +104,36 @@ Tag parse_tag(std::string_view tag_strview) {
   }
   tag_strview = tag_strview.substr(1);
   skip_spaces(tag_strview);
-  parse_params(tag_strview, t.params);
+  while (true) {
+    if (tag_strview.size() == 0 || tag_strview.starts_with('/') || tag_strview.starts_with('>'))
+      break;
+    auto param_name = parse_ident(tag_strview);
+    skip_spaces(tag_strview);
+    if (!tag_strview.starts_with('=')) {
+      t.params[std::string(param_name)] = "1";
+      continue;
+    }
+    tag_strview = tag_strview.substr(1);
+    skip_spaces(tag_strview);
+    std::string param_value;
+    if (!tag_strview.starts_with('"')) {
+      // ERROR: TODO
+    } else {
+      tag_strview = tag_strview.substr(1);
+      while (true) {
+        if (tag_strview[0] == '"')
+          break;
+        if (tag_strview[0] == '\\') {
+          tag_strview = tag_strview.substr(1);
+        }
+        param_value.push_back(tag_strview[0]);
+        tag_strview = tag_strview.substr(1);
+      }
+    }
+    tag_strview = tag_strview.substr(1); // final '"'
+    t.params[std::string(param_name)] = param_value;
+    skip_spaces(tag_strview);
+  }
   t.is_self_closing = false;
   if (tag_strview.size() != 0 && tag_strview[0] == '/') {
     t.is_self_closing = true;
@@ -238,7 +213,7 @@ ComponentPlaceholder parse_placeholder(std::string_view code) {
     ph.length = code.data() - orig_cursor;
     return ph;
   }
-  skip_1(code);
+  if (code.size() != 0) code = code.substr(1);
   skip_spaces(code);
   if (!code.starts_with('?')) {
     if (code.starts_with("}}")) {
@@ -253,7 +228,7 @@ ComponentPlaceholder parse_placeholder(std::string_view code) {
       return ph;
     }
     code = code.substr(2);
-    ph.replace_with = read_balanced(code, "{{", "}}");
+    ph.replace_with = read_balanced(code);
     ph.has_replace_with = true;
     skip_spaces(code);
     if (!code.starts_with('?')) {
@@ -266,7 +241,7 @@ ComponentPlaceholder parse_placeholder(std::string_view code) {
       return ph;
     }
   }
-  skip_1(code);
+  if (code.size() != 0) code = code.substr(1);
   skip_spaces(code);
   if (!code.starts_with("{{")) {
     // ERROR:
@@ -275,7 +250,7 @@ ComponentPlaceholder parse_placeholder(std::string_view code) {
     return ph;
   }
   code = code.substr(2);
-  ph.replace_with_alt = read_balanced(code, "{{", "}}");
+  ph.replace_with_alt = read_balanced(code);
   ph.has_replace_with_alt = true;
   if (!code.starts_with("}}")) {
     // ERROR:
@@ -288,13 +263,14 @@ ComponentPlaceholder parse_placeholder(std::string_view code) {
 
 std::string component_string(char const *component_name,
                              TagParams const &params) {
-  auto raw_html = get_code_instance(component_name);
+  auto raw_html = http::Resource::get("html::" + std::string(component_name), true).get_res_contents();
 
   // 1st pass: apply params
   u64 pos = 0;
   while ((pos = raw_html.find("{{", pos)) != std::string::npos) {
     auto ph = parse_placeholder(std::string_view(raw_html).substr(pos + 2));
     if (ph.has_error) {
+      sys::error("placeholder error in component: %s", component_name);
       pos++;
       continue;
     }

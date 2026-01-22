@@ -1,12 +1,12 @@
-#include "html/code_builder.hpp"
 #include "routes.hpp"
 #include <db.hpp>
 #include <html/macros.hpp>
 
-std::string page::root(http::Request) {
+std::string page::root(http::Request r) {
   DECLARE_HTML(html, "page::layout") {
     CHILD("page::root") {
       ITER_DB(s, id, SondagesDb) {
+        if (!s->active) continue;
         CHILD("components::sondage_button") {
           PARAM("href", s->route.c_str());
           PARAM("text", s->button_text.c_str());

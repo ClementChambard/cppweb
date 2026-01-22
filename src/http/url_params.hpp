@@ -9,7 +9,7 @@ namespace http {
 
 using UrlParams = std::unordered_map<std::string, std::string>;
 
-std::string decode_param(std::string_view str);
+std::string url_decode(std::string_view str);
 
 void url_params(std::string_view str, UrlParams &params);
 

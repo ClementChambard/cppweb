@@ -2,3 +2,4 @@ build/
 .cache/
 server
 console.log
+html/tmp/

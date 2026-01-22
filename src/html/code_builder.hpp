@@ -3,6 +3,7 @@
 
 #include <string>
 #include <unordered_map>
+#include "./components.hpp"
 
 namespace html {
 
@@ -20,7 +21,9 @@ struct CodeBuilder {
     placeholder_map[placeholder] = data;
     return *this;
   }
-  std::string build();
+  std::string build() {
+    return component_string(this->html_name.c_str(), placeholder_map);
+  }
 
   std::string html_name;
   std::unordered_map<std::string, std::string> placeholder_map;

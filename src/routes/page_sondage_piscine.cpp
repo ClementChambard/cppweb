@@ -15,7 +15,7 @@ std::string format_date(std::string date) {
 
 std::string page::sondage_piscine(http::Request r) {
   DECLARE_HTML(html, "page::layout") {
-    CHILD("page::sondage::layout") {
+    CHILD("page::sondage::piscine") {
       PARAM("info", get_sondage_desc(r.endpoint.c_str()));
       ITER_DB(s, id, PiscineDb) {
         CHILD("components::piscine::piscine_card") {

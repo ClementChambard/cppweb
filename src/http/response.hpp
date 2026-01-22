@@ -11,7 +11,6 @@ struct Response {
   u32 code;
   std::unordered_map<std::string, std::string> headers;
   std::string body;
-  bool has_body;
 
   static Response ok();
   static Response not_found();
@@ -31,12 +30,9 @@ struct Response::Builder {
   }
   Builder &body(std::string const &type, std::string const &body) {
     m_obj.body = body;
+    m_has_body = true;
     return header("Content-Type", type.c_str())
         .header("Content-Length", std::to_string(body.size()).c_str());
-  }
-  Builder &emptybody() {
-    m_obj.body = "";
-    return header("Content-Length", "0");
   }
   Builder &code(u32 code) {
     m_obj.code = code;
@@ -45,8 +41,12 @@ struct Response::Builder {
   Builder &close() {
     return header("Connection", "close");
   }
-  Response build() { return std::move(m_obj); }
+  Response build() { 
+    if (!m_has_body) header("Content-Length", "0");
+    return std::move(m_obj);
+  }
   Response m_obj;
+  bool m_has_body = false;
 };
 
 } // namespace http

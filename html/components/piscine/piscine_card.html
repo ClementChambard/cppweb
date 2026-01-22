@@ -1,5 +1,4 @@
-<{components::piscine::reserve_piscine_modal} piscine_id="{{id}}" />
-<{components::sondage_card} modal_name="reserve-piscine-modal-{{id}}" button_text="disponible" name="{{date_formatted}}"
+<{components::sondage_card2} id="{{id}}" onclick="open_piscine_modal({{id}})" button_text="disponible" name="{{date_formatted}}"
   {{done?{{done}}}}>
   <div class="piscine-card-container">{{parent}}</div>
-</{components::sondage_card}>
+</{components::sondage_card2}>

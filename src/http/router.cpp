@@ -2,6 +2,7 @@
 #include "http/request.hpp"
 #include "http/response.hpp"
 #include "http/url_params.hpp"
+#include "http/resource.hpp"
 #include "sys/read_file.hpp"
 #include <string_view>
 #include <unordered_map>
@@ -58,7 +59,7 @@ bool check_match(Request &r, Route const &route, UrlParams &params) {
     }
     if (i == route.route_parts.size()) {
       params[std::string(route.placeholder_names[i - 1])] =
-          decode_param(endpoint);
+          url_decode(endpoint);
       return true;
     }
     auto pos = endpoint.find(route.route_parts[i]);
@@ -66,7 +67,7 @@ bool check_match(Request &r, Route const &route, UrlParams &params) {
       return false;
     }
     params[std::string(route.placeholder_names[i - 1])] =
-        decode_param(endpoint.substr(0, pos));
+        url_decode(endpoint.substr(0, pos));
     endpoint = endpoint.substr(pos + route.route_parts[i].size());
     i++;
   }
@@ -93,85 +94,39 @@ Router &Router::route(char const *endpoint, Request::Kind k, EndpointFunc fn) {
   return *this;
 }
 
-std::string resource_type(std::string_view filename) {
-  if (filename.ends_with(".css"))
-    return "text/css; charset=UTF-8";
-  if (filename.ends_with(".ico"))
-    return "image/x-icon";
-  return "*/*";
-}
-
-struct Resource {
-  std::string file_name;
-  std::string resource_type;
-  bool gzipped;
-  std::string etag;
-  sys::FInfo info;
-};
-
-std::unordered_map<std::string, Resource> resource_cache;
-
-void gzipped(Resource &res) {
-  auto gzip_filename = res.file_name + ".gz";
-  auto info = sys::file_info(gzip_filename.c_str());
-  if (!info.exists) return;
-  res.file_name = std::move(gzip_filename);
-  res.gzipped = true;
-  res.info = info;
-}
 
 Response get_resource(Request r) {
-  if (auto it = resource_cache.find(r.endpoint); it != resource_cache.end()) {
-    auto &res = it->second;
-    auto info = sys::file_info(res.file_name.c_str());
-    if (!info.exists) {
-      return Response::not_found();
-    }
-    res.info = info;
-    res.etag = "\"" + std::to_string(info.last_modified) + "\"";
-    if (auto header_it = r.headers.find("If-None-Match");
-        header_it != r.headers.end()) {
-      if (res.etag == header_it->second) {
-        return Response::Builder()
-            .code(304)
-            .header("etag", res.etag.c_str())
-            .close()
-            .build();
-      }
-    }
-  } else {
-    Resource res;
-    res.file_name = "public" + r.endpoint;
-    res.resource_type = resource_type(res.file_name);
-    res.gzipped = res.file_name.ends_with(".gz");
-    res.info = sys::file_info(res.file_name.c_str());
-    if (!res.gzipped && !res.info.exists) {
-      gzipped(res);
-    }
-    res.etag = "\"" + std::to_string(res.info.last_modified) + "\"";
-    resource_cache[r.endpoint] = res;
-    if (!res.info.exists) {
-      return Response::not_found();
+  Resource const &res = Resource::get(r.endpoint);
+  if (!res.info.exists) {
+    return Response::not_found();
+  }
+  if (auto header_it = r.headers.find("If-None-Match");
+      header_it != r.headers.end()) {
+    if (res.etag == header_it->second) {
+      return Response::Builder()
+          .code(304)
+          .header("etag", res.etag.c_str())
+          .close()
+          .build();
     }
   }
-  Resource &res = resource_cache[r.endpoint];
-  std::string file_content = sys::read_text_file(res.file_name.c_str());
+  std::string file_content = res.get_res_contents();
   auto b = Response::Builder()
-               .code(200)
-               .body(res.resource_type, file_content)
-               .close()
-               .header("etag", res.etag.c_str());
+              .code(200)
+              .body(res.resource_type, file_content)
+              .close()
+              .header("etag", res.etag.c_str());
   if (res.gzipped) {
     b.header("content-encoding", "gzip");
   }
-
   return b.build();
 }
 
 Response Router::process_request(Request &r) const {
   std::string_view endpoint = r.endpoint;
   url_params_from_url(endpoint, r.params);
-  if (endpoint.size() != 1 && endpoint.ends_with('/')) endpoint = endpoint.substr(0, endpoint.size() - 1);
+  if (endpoint.size() != 1 && endpoint.ends_with('/'))
+    endpoint = endpoint.substr(0, endpoint.size() - 1);
   r.endpoint = endpoint;
   Response res;
   if (r.kind == Request::Kind::POST) {
@@ -179,14 +134,12 @@ Response Router::process_request(Request &r) const {
       if (route.exec_if_match(r, res))
         return res;
     }
-    return Response::not_found();
   }
   if (r.kind == Request::Kind::PATCH) {
     for (auto const &route : patch_routes) {
       if (route.exec_if_match(r, res))
         return res;
     }
-    return Response::Builder().code(405).close().build();
   }
   if (r.kind == Request::Kind::GET) {
     for (auto const &route : get_routes) {
@@ -195,7 +148,7 @@ Response Router::process_request(Request &r) const {
     }
     return get_resource(r);
   }
-  return Response::bad_request();
+  return Response::not_found();
 }
 
 } // namespace http

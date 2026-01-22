@@ -1,15 +1,17 @@
 #include "page.hpp"
 #include "http/request.hpp"
-#include "routes/routes.hpp"
 #include "sys/read_file.hpp"
 #include "sys/subprocess.hpp"
 #include <chrono>
 
 namespace html {
 
-std::string get_page_data(char const *name) {
-  return sys::read_text_file(
-      (std::string("html/tmp/") + name + ".html.gz").c_str());
+static std::string get_page_filename(Page &p) {
+  return "html/tmp/" + p.name + ".html.gz";
+}
+
+static bool check_page_created(Page &p) {
+  return sys::file_info(get_page_filename(p).c_str()).exists;
 }
 
 void rebuild(Page &p, http::Request &r) {
@@ -31,7 +33,8 @@ void rebuild(Page &p, http::Request &r) {
 http::Response Page::get_response(http::Request r) {
   if (!check_authorization(r))
     return http::Response::unauthorized();
-  if (needs_rebuild) {
+  
+  if (needs_rebuild || !check_page_created(*this)) {
     rebuild(*this, r);
   } else if (auto header_it = r.headers.find("If-None-Match");
              header_it != r.headers.end()) {
@@ -45,7 +48,7 @@ http::Response Page::get_response(http::Request r) {
   }
   return http::Response::Builder()
       .code(200)
-      .body("text/html; charset=utf-8", get_page_data(name.c_str()))
+      .body("text/html; charset=utf-8", sys::read_text_file(get_page_filename(*this).c_str()))
       .header("content-encoding", "gzip")
       .header("etag", etag.c_str())
       .close()

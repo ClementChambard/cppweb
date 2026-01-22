@@ -48,7 +48,7 @@ void client_thread(Connection *self) {
 
   i32 bytes_received;
 
-  char buffer[BUFFER_SIZE];
+  char buffer[BUFFER_SIZE + 1];
 
   while (true) {
     buffer[0] = 0;
@@ -60,6 +60,14 @@ void client_thread(Connection *self) {
       sys::error(" ==> Failed to read bytes from client socket connection");
       break;
     }
+
+    if (bytes_received == BUFFER_SIZE) {
+      sys::warn("   * Request might be too long for internal buffer...");
+    }
+
+    buffer[bytes_received] = 0;
+    // TODO: maybe not enough bytes in buffer when parsing request ? 
+    // => should read more.
 
     Request r = Request::parse(buffer);
     sys::info(" ==> %s", r.first_line().c_str());

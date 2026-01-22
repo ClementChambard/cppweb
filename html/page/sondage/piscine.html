@@ -1,0 +1,18 @@
+<{components::modals::modal} popover_id="reserve-piscine-modal" title="Réservation"
+  action_label="Réserver" footer="" endpoint="">
+  <div class="modal-body-container">
+    <{components::heading} title="Reservation pour la piscine" subtitle="Entrez votre nom :" />
+    <{components::inputs::input} label="Nom" name="parent" type="text" required />
+  </div>
+</{components::modals::modal}>
+<div class="sondage-info">{{info}}</div>
+<div class="card-list-container">
+  {{children}}
+</div>
+<script>
+  function open_piscine_modal(idx) {
+    m = document.getElementById("reserve-piscine-modal");
+    m.getElementsByTagName("form")[0].setAttribute("action",`/api/piscine/${idx}`);
+    m.togglePopover();
+  }
+</script>

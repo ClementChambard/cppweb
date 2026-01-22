@@ -16,7 +16,7 @@ char get_pcchar(char c1, char c2) {
   return static_cast<char>(0x10 * digit(c1) + digit(c2));
 }
 
-std::string decode_param(std::string_view param) {
+std::string url_decode(std::string_view param) {
   auto p = std::string(param);
   u64 prev_loc = 0;
   u64 loc = 0;
@@ -44,11 +44,11 @@ static void url_param(std::string_view par, UrlParams &params) {
     sys::error("   * MISSING '=' IN URL PARAMETER: %*s", par.size(), par.data());
     return;
   }
-  auto name = decode_param(par.substr(0, equals_loc));
+  auto name = url_decode(par.substr(0, equals_loc));
   if (equals_loc + 1 == par.size()) {
     params[name] = "";
   } else {
-    params[name] = decode_param(par.substr(equals_loc + 1));
+    params[name] = url_decode(par.substr(equals_loc + 1));
   }
 }
 

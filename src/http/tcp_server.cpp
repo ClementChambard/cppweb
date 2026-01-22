@@ -1,5 +1,4 @@
 #include "tcp_server.hpp"
-#include "html/code_instance.hpp"
 #include "http/connection.hpp"
 
 #include <arpa/inet.h>
@@ -24,15 +23,10 @@ static bool execute_server_command(http::TcpServer& serv, ServerCommand const &c
   if (cmd.cmd == "/stop") {
     return true;
   }
-  if (cmd.cmd == "/reload_html") {
-    html::cleanup_cache();
-    sys::info("[/reload_html]: Successfully reloaded html");
-  }
   if (cmd.cmd == "/help") {
     sys::info("[/help]: Available commands:\n"
         " - /stop: stops the server\n"
-        " - /help: show this message\n"
-        " - /reload_html: reloads the in-memory html\n");
+        " - /help: show this message\n");
   }
   return false;
 }

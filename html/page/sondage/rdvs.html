@@ -12,10 +12,8 @@
 <script>
   function open_rdv_modal(rdvid, timetxt) {
     m = document.getElementById("reserve-rdv-modal");
-    f = m.getElementsByTagName("form")[0];
-    f.setAttribute("action", `/api/rdvs/${rdvid}`);
-    h = m.getElementsByClassName("heading-title")[0]
-    h.textContent = `Réservation pour le rendez-vous: ${timetxt}`;
+    m.getElementsByTagName("form")[0].setAttribute("action",`/api/rdvs/${rdvid}`);
+    m.getElementsByClassName("heading-title")[0].textContent = `Réservation pour le rendez-vous: ${timetxt}`;
     m.togglePopover();
   }
 </script>
