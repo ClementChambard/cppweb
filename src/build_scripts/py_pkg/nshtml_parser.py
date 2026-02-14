@@ -402,6 +402,13 @@ class HtmlNSPlaceholder:
                 text = text[1:]
         return text, out
 
+
+    # {{ id }}
+    # {{ id ? }}
+    # {{ id ? {{ ... }} }}
+    # {{ id ? ? {{ ... }} }}
+    # {{ id ? {{ ... }} ? {{ ... }} }}
+
     @classmethod
     def parse(cls, s: str) -> Tuple[str, Self]:
         assert s.startswith("{{")
