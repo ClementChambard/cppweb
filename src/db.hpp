@@ -104,8 +104,6 @@ using RdvsDb = Db<Rdv>;
 using RollersDb = Db<Rollers>;
 using PiscineDb = Db<Piscine>;
 
-std::string get_sondage_desc(char const *route);
-
 #define ITER_DB(item, id, db)                                                  \
   for (int i = (db::lock(), 0), id = 0; i < 1; db::unlock(), i++)              \
     for (auto s = db::get().items.begin(); s != db::get().items.end();         \

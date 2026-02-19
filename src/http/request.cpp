@@ -14,6 +14,10 @@ Request::Kind parse_request_kind(std::string_view k) {
     return Request::Kind::POST;
   if (k == "PATCH")
     return Request::Kind::PATCH;
+  if (k == "PUT")
+    return Request::Kind::PUT;
+  if (k == "DELETE")
+    return Request::Kind::DELETE;
   sys::error("KIND IS %*s", k.size(), k.data());
   return Request::Kind::ERROR;
 }
@@ -133,6 +137,10 @@ std::string request_kind_to_string(Request::Kind k) {
     return "POST";
   if (k == Request::Kind::PATCH)
     return "PATCH";
+  if (k == Request::Kind::PUT)
+    return "PUT";
+  if (k == Request::Kind::DELETE)
+    return "DELETE";
   return "ERROR";
 }
 

@@ -13,6 +13,8 @@ struct Request {
     GET,
     POST,
     PATCH,
+    PUT,
+    DELETE,
     // TODO:
     ERROR
   } kind;

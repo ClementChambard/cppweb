@@ -2,6 +2,21 @@
 #include "routes.hpp"
 #include <algorithm>
 
+http::Response api::get_piscine(http::Request r) {
+  Json::Value out{Json::ValueType::arrayValue};
+  ITER_DB(s, id, PiscineDb) {
+    Json::Value o{Json::ValueType::objectValue};
+    o["date"] = s->date;
+    o["parent"] = s->parent;
+    out.append(o);
+  }
+  return http::Response::Builder()
+      .code(200)
+      .json(out)
+      .close()
+      .build();
+}
+
 http::Response api::piscine_id(http::Request r) {
   i32 idx = r.int_param("id");
 

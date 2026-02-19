@@ -3,8 +3,8 @@
 #include <html/macros.hpp>
 
 std::string page::admin_sondages_rdvs(http::Request r) {
-  DECLARE_HTML(html, "page::layout") {
-    CHILD("page::admin::sondages::rdvs") {
+  DECLARE_HTML(html, "root::layout") {
+    CHILD("root::admin::sondages::rdvs::page") {
       ITER_DB(s, id, RdvsDb) {
         CHILD("components::rdvs::admin_rdv_card") {
           auto h = std::to_string(s->heure) + 'h';

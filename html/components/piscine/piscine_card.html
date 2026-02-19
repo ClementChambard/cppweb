@@ -1,4 +1,30 @@
-<{components::sondage_card2} id="{{id}}" onclick="open_piscine_modal({{id}})" button_text="disponible" name="{{date_formatted}}"
-  {{done?{{done}}}}>
-  <div class="piscine-card-container">{{parent}}</div>
-</{components::sondage_card2}>
+<template id="piscine-card-template">
+<div class="sondage-card-container">
+  <div class="sondage-card-name"></div>
+  <div class="sondage-card-right">
+    <div class="piscine-card-container"></div>
+    <button class="sondage-card-button transition">disponible</button>
+  </div>
+</div>
+</template>
+<script>
+  function set_card_parent(card, parnt) {
+    if (parnt == "") {
+      card.querySelector(".piscine-card-container").hidden = true;
+      card.querySelector(".sondage-card-button").hidden = false;
+    } else {
+      card.querySelector(".piscine-card-container").hidden = false;
+      card.querySelector(".sondage-card-button").hidden = true;
+    }
+    card.querySelector(".piscine-card-container").textContent = parnt;
+  }
+
+  const piscine_card_template = document.querySelector("#piscine-card-template");
+  function create_piscine_card(date, id, parnt) {
+    const clone = document.importNode(piscine_card_template.content, true);
+    clone.querySelector(".sondage-card-name").textContent = date.replaceAll("-", "/");
+    clone.querySelector(".sondage-card-button").onclick = open_piscine_modal.bind(0, id);
+    set_card_parent(clone, parnt)
+    return clone;
+  }
+</script>

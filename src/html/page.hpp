@@ -23,11 +23,21 @@ struct Page {
   std::function<std::string(http::Request &)> build_html;
 
   http::Response get_response(http::Request r);
+
+  static Page from_route(char const *route);
 };
+
+inline std::function<http::Response(http::Request)> page_keep(Page const &p) {
+  struct Wrapper {
+    mutable Page p;
+  } w{p};
+  return [w](http::Request r) -> http::Response { return w.p.get_response(r); };
+}
 
 inline std::function<http::Response(http::Request)> page(Page &p) {
   return [&p](http::Request r) -> http::Response { return p.get_response(r); };
 }
+
 
 } // namespace html
 

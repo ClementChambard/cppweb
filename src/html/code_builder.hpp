@@ -29,6 +29,13 @@ struct CodeBuilder {
   std::unordered_map<std::string, std::string> placeholder_map;
 };
 
+inline std::string layout_and_page(char const *layout, char const *page) {
+  html::CodeBuilder builder(layout);
+  html::CodeBuilder builder_2(page);
+  builder.placeholder("children", builder_2.build().c_str());
+  return builder.build();
+}
+
 } // namespace html
 
 #endif // !IG_HTML_CODE_HPP

@@ -91,6 +91,10 @@ Router &Router::route(char const *endpoint, Request::Kind k, EndpointFunc fn) {
     get_routes.push_back({endpoint, fn});
   if (k == Request::Kind::PATCH)
     patch_routes.push_back({endpoint, fn});
+  if (k == Request::Kind::PUT)
+    put_routes.push_back({endpoint, fn});
+  if (k == Request::Kind::DELETE)
+    delete_routes.push_back({endpoint, fn});
   return *this;
 }
 
@@ -137,6 +141,18 @@ Response Router::process_request(Request &r) const {
   }
   if (r.kind == Request::Kind::PATCH) {
     for (auto const &route : patch_routes) {
+      if (route.exec_if_match(r, res))
+        return res;
+    }
+  }
+  if (r.kind == Request::Kind::PUT) {
+    for (auto const &route : put_routes) {
+      if (route.exec_if_match(r, res))
+        return res;
+    }
+  }
+  if (r.kind == Request::Kind::DELETE) {
+    for (auto const &route : delete_routes) {
       if (route.exec_if_match(r, res))
         return res;
     }

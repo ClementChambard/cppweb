@@ -1,0 +1,89 @@
+<{components::modals::modal_js} popover_id="edit-sondage-modal" title="Modifier Sondage"
+  action_label="Modifier" onclick="edit_sondage()">
+  <div class="modal-body-container">
+    <{components::heading} title="Modification de sondage" subtitle="" />
+    <{components::inputs::input} name="btn_text" label="Texte du bouton" value="" />
+    <{components::inputs::input} name="desc" label="Description" value="" />
+  </div>
+</{components::modals::modal_js}>
+
+<div class="card-list-container"></div>
+
+<template id="card-template">
+  <div class="sondage-edit-card-container">
+    <a class="sondage-edit-card-link">
+      <div class="sondage-edit-card-name transition"></div>
+    </a>
+    <div class="sondage-edit-card-right">
+      <button id="active-toggle" class="btn-component" type="submit"> </button>
+      <button id="open-modal" class="btn-component reduce-icon outline" type="button">
+        <{components::icon} size="24" icon="settings" class="btn-component-icon" />
+        <span class="btn-component-label">propriétés</span>
+      </button>
+    </div>
+  </div>
+</template>
+
+<script>
+  let sondages = [];
+  let current_id = 0;
+  const card_template = document.querySelector("#card-template");
+  const insert_into = document.querySelector(".card-list-container");
+  const modal = document.querySelector('#edit-sondage-modal');
+  const btn_text_input = modal.querySelector('input[name="btn_text"]');
+  const desc_input = modal.querySelector('input[name="desc"]');
+
+  function open_edit_modal(idx) {
+    modal.querySelector('.heading-subtitle').textContent = `Modifier le sondage ${sondages[idx].name}`;
+    modal.togglePopover();
+    btn_text_input.value = sondages[idx].btn_text;
+    desc_input.value = sondages[idx].desc;
+    current_id = idx;
+  }
+
+  function edit_sondage() {
+    console.log("OK!", `/api/sondages/${current_id}`);
+    fetch(`/api/sondages/${current_id}`, {
+      "method": "PUT",
+      "body": `btn_text=${encodeURI(btn_text_input.value)}&desc=${encodeURI(desc_input.value)}`
+    });
+    sondages[current_id].btn_text = btn_text_input.value;
+    sondages[current_id].desc = desc_input.value;
+    modal.togglePopover();
+  }
+
+  function toggle_active(idx) {
+    const new_active = sondages[idx].active ? "0" : "1";
+    fetch(`/api/sondages/${idx}`, {
+      "method": "PUT",
+      "body": `active=${new_active}`
+    });
+    sondages[idx].active = !sondages[idx].active;
+    let btn = insert_into.children[idx].querySelector('#active-toggle');
+    btn.classList.toggle('gray')
+    btn.textContent = sondages[idx].active ? "actif" : "inactif";
+  }
+
+  fetch("/api/sondages", {
+    method: "GET",
+    headers: {
+      "Accept": "application/json",
+    },
+  }).then(response => response.json())
+    .then(response => { 
+      sondages = response
+      let id = 0;
+      for (o of response) {
+        const card = document.importNode(card_template.content, true);
+        card.querySelector('.sondage-edit-card-link').href = `/admin/sondages/${o.name}`;
+        card.querySelector('.sondage-edit-card-name').textContent = o.name;
+        card.querySelector('#open-modal').onclick = open_edit_modal.bind(id, id);
+        const btn = card.querySelector('#active-toggle');
+        if (!o.active) btn.classList.add('gray');
+        btn.textContent = o.active ? "actif" : "inactif";
+        btn.onclick = toggle_active.bind(id, id);
+        insert_into.appendChild(card);
+        id++;
+      }
+  });
+</script>

@@ -28,8 +28,8 @@ div {
   display: block;
 }
 
-script {
-  display: none;
+script, [hidden] {
+  display: none !important;
 }
 
 [popover]::backdrop {

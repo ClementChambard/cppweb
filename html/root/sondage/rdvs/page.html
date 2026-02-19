@@ -1,0 +1,59 @@
+<div class="sondage-info"></div>
+<{components::modals::modal_js} popover_id="reserve-rdv-modal" title="Réservation" action_label="Réserver" footer=""
+  onclick="rdv_modal_submit()">
+  <div class="modal-body-container">
+    <{components::heading} title="" subtitle="Vous assistez au rendez-vous pour :" />
+    <{components::inputs::input} label="Nom" name="student" type="text" required />
+  </div>
+</{components::modals::modal_js}>
+<div class="card-list-container"> </div>
+
+<{components::rdvs::rdv_card} />
+
+<script>
+  const modal = document.querySelector("#reserve-rdv-modal");
+  const student_input = document.querySelector('input[name="student"]');
+  const card_list = document.querySelector(".card-list-container");
+  let cur_idx = 0;
+
+  function open_rdv_modal(rdvid, timetxt) {
+    cur_idx = rdvid;
+    modal.querySelector(".heading-title").textContent = `Réservation pour le rendez-vous: ${timetxt}`;
+    student_input.value = "";
+    modal.togglePopover();
+  }
+
+  function rdv_modal_submit() {
+    set_card_student(card_list.children[cur_idx], student_input.value);
+    fetch(`/api/rdvs/${cur_idx}`, {
+      "method": "PUT",
+      "body": `student=${student_input.value}`
+    });
+    modal.togglePopover();
+  }
+
+  fetch("/api/sondages", { method: "GET", headers: { "Accept": "application/json" }})
+    .then(response => response.json())
+    .then(response => {
+      for (o of response) {
+        if (!o.name == "rdvs") continue;
+        document.querySelector(".sondage-info").textContent = o.desc;
+        break;
+      }
+    });
+  fetch("/api/rdvs", { method: "GET", headers: { "Accept": "application/json" }})
+    .then(response => response.json())
+    .then(response => {
+      let idx = 0;
+      for (o of response) {
+        let h = `${o.heure}h`;
+        if (h.length == 1) h = '0' + h;
+        let m = `${o.minute}`;
+        if (m.length == 1) m = '0' + m;
+        h += m;
+        if (o.txt != "") h = o.txt + " " + h;
+        card_list.appendChild(create_rdv_card(h, idx, o.eleve));
+        idx++;
+      }
+    });
+</script>

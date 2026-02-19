@@ -4,6 +4,7 @@
 #include <defines.hpp>
 #include <string>
 #include <unordered_map>
+#include <json/json.h>
 
 namespace http {
 
@@ -33,6 +34,10 @@ struct Response::Builder {
     m_has_body = true;
     return header("Content-Type", type.c_str())
         .header("Content-Length", std::to_string(body.size()).c_str());
+  }
+  Builder &json(Json::Value const &v) {
+    static Json::FastWriter writer{};
+    return body("text/json", writer.write(v));
   }
   Builder &code(u32 code) {
     m_obj.code = code;

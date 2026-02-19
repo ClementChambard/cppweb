@@ -11,7 +11,7 @@ export CXXFLAGS_COMMON = -std=$(CXX_STANDARD) $(INCLUDE_FLAGS) $(WARNING_FLAGS)
 export CXXFLAGS_DEBUG = $(CXXFLAGS_COMMON) -g -fsanitize=address
 export CXXFLAGS_RELEASE = $(CXXFLAGS_COMMON) -O4 -DRELEASE
 export CXXFLAGS = $(CXXFLAGS_DEBUG)
-export LDFLAGS = -fsanitize=address
+export LDFLAGS = -fsanitize=address -ljsoncpp
 
 .PHONY: $(EXE) all clean run always bear release clean_release
 

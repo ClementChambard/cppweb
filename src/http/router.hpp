@@ -36,18 +36,34 @@ struct Router {
   Router &patch(char const *endpoint, EndpointFunc fn) {
     return route(endpoint, Request::Kind::PATCH, fn);
   }
+  Router &put(char const *endpoint, EndpointFunc fn) {
+    return route(endpoint, Request::Kind::PUT, fn);
+  }
+  Router &del(char const *endpoint, EndpointFunc fn) {
+    return route(endpoint, Request::Kind::DELETE, fn);
+  }
   Router &page(char const *endpoint, html::Page &page) {
     return get(endpoint, html::page(page));
+  }
+  Router &page(char const *endpoint) {
+    return get(endpoint, html::page_keep(html::Page::from_route(endpoint)));
   }
   Router &page(char const *endpoint, html::Page &page,
                std::function<bool(Request &)> auth) {
     page.check_authorization = auth;
     return get(endpoint, html::page(page));
   }
+  Router &page(char const *endpoint, std::function<bool(Request &)> auth) {
+    auto page = html::Page::from_route(endpoint);
+    page.check_authorization = auth;
+    return get(endpoint, html::page_keep(page));
+  }
 
   std::vector<Route> get_routes;
   std::vector<Route> post_routes;
   std::vector<Route> patch_routes;
+  std::vector<Route> put_routes;
+  std::vector<Route> delete_routes;
 };
 
 } // namespace http

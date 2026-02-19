@@ -1,6 +1,22 @@
 #include "../db.hpp"
 #include "routes.hpp"
-#include <algorithm>
+
+http::Response api::get_rdvs(http::Request r) {
+  Json::Value out{Json::ValueType::arrayValue};
+  ITER_DB(s, id, RdvsDb) {
+    Json::Value o{Json::ValueType::objectValue};
+    o["eleve"] = s->eleve;
+    o["minute"] = s->minute;
+    o["heure"] = s->heure;
+    o["txt"] = s->txt;
+    out.append(o);
+  }
+  return http::Response::Builder()
+      .code(200)
+      .json(out)
+      .close()
+      .build();
+}
 
 http::Response api::rdvs_id(http::Request r) {
   // TODO: can't change eleve if it's already set and not authentified ?

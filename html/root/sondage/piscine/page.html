@@ -1,0 +1,53 @@
+<{components::modals::modal_js} popover_id="reserve-piscine-modal" title="Réservation"
+  action_label="Réserver" onclick="submit_piscine_modal()">
+  <div class="modal-body-container">
+    <{components::heading} title="Reservation pour la piscine" subtitle="Entrez votre nom :" />
+    <{components::inputs::input} label="Nom" name="parent" type="text" required />
+  </div>
+</{components::modals::modal_js}>
+<div class="sondage-info"></div>
+<div class="card-list-container"></div>
+
+<{components::piscine::piscine_card}/>
+
+<script>
+  let cur_idx = 0;
+  const modal = document.getElementById("reserve-piscine-modal");
+  const parent_input = document.querySelector('input[name="parent"]');
+  const card_list = document.querySelector(".card-list-container");
+
+  function open_piscine_modal(idx) {
+    cur_idx = idx;
+    parent_input.value = ""
+    modal.togglePopover();
+  }
+
+  function submit_piscine_modal() {
+    set_card_parent(card_list.children[cur_idx], parent_input.value);
+    fetch(`/api/piscine/${cur_idx}`, {
+      "method": "PUT",
+      "body": `parent=${parent_input.value}`
+    });
+    modal.togglePopover();
+  }
+
+  fetch("/api/sondages", { method: "GET", headers: { "Accept": "application/json" }})
+    .then(response => response.json())
+    .then(response => {
+      for (o of response) {
+        if (!o.name == "piscine") continue;
+        document.querySelector(".sondage-info").textContent = o.desc;
+        break;
+      }
+    });
+  fetch("/api/piscine", { method: "GET", headers: { "Accept": "application/json" }})
+    .then(response => response.json())
+    .then(response => {
+      let idx = 0;
+      for (o of response) {
+        card_list.appendChild(create_piscine_card(o.date, idx, o.parent));
+        idx++;
+      }
+    });
+</script>
+

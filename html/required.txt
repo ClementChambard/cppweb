@@ -1,6 +1,4 @@
-page::*
-components::sondage_button
-components::sondage_edit_card
+root::*
 components::rdvs::rdv_card
 components::rdvs::admin_rdv_card
 components::piscine::piscine_card

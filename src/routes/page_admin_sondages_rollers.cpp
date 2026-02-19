@@ -3,8 +3,8 @@
 #include <html/macros.hpp>
 
 std::string page::admin_sondages_rollers(http::Request r) {
-  DECLARE_HTML(html, "page::layout") {
-    CHILD("page::admin::sondages::rollers") {
+  DECLARE_HTML(html, "root::layout") {
+    CHILD("root::admin::sondages::rollers::page") {
       ITER_DB(s, id, RollersDb) {
         CHILD("components::rollers::admin_roller_card") {
           PARAM("id", id);

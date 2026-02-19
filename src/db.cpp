@@ -87,16 +87,3 @@ void Piscine::read(std::string_view &sv) {
 void Piscine::write(std::ostringstream &out) const {
   out << date << '\n' << parent << '\n';
 }
-
-std::string get_sondage_desc(char const *route) {
-  SondagesDb::lock();
-  std::string info;
-  for (auto const &s : SondagesDb::get().items) {
-    if (s.route == route) {
-      info = s.desc;
-      break;
-    }
-  }
-  SondagesDb::unlock();
-  return info;
-}
