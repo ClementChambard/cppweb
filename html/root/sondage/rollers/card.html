@@ -1,0 +1,66 @@
+<template id="roller-card-template">
+<div class="sondage-card-container">
+  <div class="sondage-card-name"></div>
+  <div class="sondage-card-right">
+    <div class="roller-card-left">
+      <div class="roller-hasroller-line">
+        <div id="has_roller">Roller</div>
+        <span id="roller_size" class="text-color-none"></span>
+      </div>
+      <div id="has_helmet">Casque</div>
+      <div id="has_protect">Protections</div>
+    </div>
+    <div class="roller-card-right" style="flex:1;">
+      <button class="btn-component reduce-icon outline" type="button">
+        <{components::icon} size="24" icon="edit" class="btn-component-icon" />
+        <span class="btn-component-label">Modifier</span>
+      </button>
+    </div>
+    <button class="sondage-card-button transition">Répondre</button>
+  </div>
+</div>
+</template>
+<script>
+  function set_card_has_answered(card, val) {
+    if (val) {
+      card.querySelector(".roller-card-left").hidden = false;
+      card.querySelector(".roller-card-right").hidden = false;
+      card.querySelector(".sondage-card-button").hidden = true;
+    } else {
+      card.querySelector(".roller-card-left").hidden = true;
+      card.querySelector(".roller-card-right").hidden = true;
+      card.querySelector(".sondage-card-button").hidden = false;
+    }
+  }
+
+  function set_card_has_roller(clone, val) {
+    clone.querySelector("#has_roller").classList = val ? "text-color-ok" : "text-color-bad";
+    clone.querySelector("#roller_size").hidden = !val;
+  }
+
+  function set_card_has_helmet(clone, val) {
+    clone.querySelector("#has_helmet").classList = val ? "text-color-ok" : "text-color-bad";
+  }
+
+  function set_card_has_protect(clone, val) {
+    clone.querySelector("#has_protect").classList = val ? "text-color-ok" : "text-color-bad";
+  }
+
+  function set_card_size(clone, val) {
+    clone.querySelector("#roller_size").textContent = val;
+  }
+
+  const roller_card_template = document.querySelector("#roller-card-template");
+  function create_roller_card(roller) {
+    const clone = document.importNode(roller_card_template.content, true);
+    clone.querySelector(".sondage-card-name").textContent = roller.eleve;
+    clone.querySelector(".sondage-card-button").onclick = open_roller_modal.bind(0, roller.id);
+    clone.querySelector('button[type="button"]').onclick = open_roller_modal.bind(0, roller.id);
+    set_card_has_answered(clone, roller.has_answered);
+    set_card_has_roller(clone, roller.has_roller);
+    set_card_has_helmet(clone, roller.has_helmet);
+    set_card_has_protect(clone, roller.has_protect);
+    set_card_size(clone, roller.size);
+    return clone;
+  }
+</script>

@@ -9,33 +9,21 @@
 namespace html {
 
 struct Page {
-  Page(char const *name, std::function<std::string(http::Request &)> build)
-      : name(name), build_html(build) {}
+  Page(char const *route);
 
   std::string name;
-  std::string etag;
-  bool needs_rebuild = true;
-
-  static bool default_authorization(http::Request &) { return true; }
-
-  std::function<bool(http::Request &)> check_authorization =
-      default_authorization;
+  std::string etag = "";
+  std::function<bool(http::Request &)> check_authorization = [](http::Request&) -> bool { return true; };
   std::function<std::string(http::Request &)> build_html;
 
   http::Response get_response(http::Request r);
-
-  static Page from_route(char const *route);
 };
 
-inline std::function<http::Response(http::Request)> page_keep(Page const &p) {
+inline std::function<http::Response(http::Request)> page(Page const &p) {
   struct Wrapper {
     mutable Page p;
   } w{p};
   return [w](http::Request r) -> http::Response { return w.p.get_response(r); };
-}
-
-inline std::function<http::Response(http::Request)> page(Page &p) {
-  return [&p](http::Request r) -> http::Response { return p.get_response(r); };
 }
 
 

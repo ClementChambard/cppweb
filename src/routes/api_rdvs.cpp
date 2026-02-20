@@ -1,10 +1,13 @@
 #include "../db.hpp"
 #include "routes.hpp"
 
-http::Response api::get_rdvs(http::Request r) {
+namespace api::rdvs {
+
+http::Response get(http::Request r) {
   Json::Value out{Json::ValueType::arrayValue};
   ITER_DB(s, id, RdvsDb) {
     Json::Value o{Json::ValueType::objectValue};
+    o["id"] = s->id;
     o["eleve"] = s->eleve;
     o["minute"] = s->minute;
     o["heure"] = s->heure;
@@ -18,77 +21,67 @@ http::Response api::get_rdvs(http::Request r) {
       .build();
 }
 
-http::Response api::rdvs_id(http::Request r) {
-  // TODO: can't change eleve if it's already set and not authentified ?
-  // TODO: can't change time if not authentified ?
-  r.body_as_params();
-  i32 idx = r.int_param("id");
+http::Response put(http::Request r) {
+  bool auth = is_authentified(r);
+  auto v = r.body_as_json();
+  if (v == std::nullopt) return http::Response::bad_request();
+  auto body = *v;
+  if (!body.isObject()) return http::Response::bad_request();
+
   RdvsDb::lock();
-  // auto old_time =
-  //     RdvsDb::get().items[idx].heure * 60 + RdvsDb::get().items[idx].minute;
-  RdvsDb::get().items[idx].heure =
-      r.int_param("hour", RdvsDb::get().items[idx].heure);
-  RdvsDb::get().items[idx].minute =
-      r.int_param("minute", RdvsDb::get().items[idx].minute);
-  RdvsDb::get().items[idx].eleve =
-      r.string_param("student", RdvsDb::get().items[idx].eleve.c_str());
-  RdvsDb::get().items[idx].txt =
-      r.string_param("txt", RdvsDb::get().items[idx].txt.c_str());
-  // if (old_time !=
-  //     RdvsDb::get().items[idx].heure * 60 + RdvsDb::get().items[idx].minute)
-  //   std::sort(RdvsDb::get().items.begin(), RdvsDb::get().items.end(),
-  //             [](auto a, auto b) -> bool {
-  //               return a.txt < b.txt || (a.txt == b.txt && (a.heure < b.heure ||
-  //                      (a.heure == b.heure && a.minute < b.minute)));
-  //             });
+  auto rdv = RdvsDb::get().get_id(r.int_param("id", -1));
+  if (!rdv) {
+    RdvsDb::unlock();
+    return http::Response::not_found();
+  }
+  if (auth) {
+    rdv->heure = body.get_int("heure", rdv->heure);
+    rdv->minute = body.get_int("minute", rdv->minute);
+    rdv->txt = body.get_string("txt", rdv->txt.c_str());
+  }
+  if (auth || rdv->eleve == "") {
+    rdv->eleve = body.get_string("eleve", rdv->eleve.c_str());
+  }
+  RdvsDb::get().write();
+  RdvsDb::unlock();
+  return http::Response::ok();
+}
+
+http::Response post(http::Request r) {
+  if (!is_authentified(r))
+    return http::Response::unauthorized();
+  Json::Value o{Json::ValueType::objectValue};
+  auto v = r.body_as_json();
+  if (v == std::nullopt) return http::Response::bad_request();
+  auto body = *v;
+  if (!body.isObject()) return http::Response::bad_request();
+
+  RdvsDb::lock();
+  auto &rdv = RdvsDb::get().add_new();
+  o["id"] = rdv.id;
+  o["heure"] = rdv.heure = body.get_int("heure");
+  o["minute"] = rdv.minute = body.get_int("minute");
+  o["eleve"] = rdv.eleve = body.get_string("eleve");
+  o["txt"] = rdv.txt = body.get_string("txt");
   RdvsDb::get().write();
   RdvsDb::unlock();
   return http::Response::Builder()
-      .code(303)
-      .header("location", r.header("Referer").c_str())
-      .close()
-      .build();
+    .code(201)
+    .json(o)
+    .header("Location", (std::string("/api/rdvs/") + o["id"].asString()).c_str())
+    .close()
+    .build();
 }
 
-http::Response api::rdvs(http::Request r) {
+http::Response del(http::Request r) {
   if (!is_authentified(r))
     return http::Response::unauthorized();
-  // TODO: if someone access to an element while a deletion is occuring, this
-  // may cause problems.
-  //       solution: use unique identifier for each rdv ?
-  r.body_as_params();
-  auto action = r.string_param("action");
-  if (action == "delete") {
-    i32 id = r.int_param("id", -1);
-    RdvsDb::lock();
-    if (id < 0 || u32(id) >= RdvsDb::get().items.size()) {
-      RdvsDb::unlock();
-      return http::Response::bad_request();
-    }
-    RdvsDb::get().items.erase(RdvsDb::get().items.begin() + id);
-    RdvsDb::get().write();
-    RdvsDb::unlock();
-  } else if (action == "create") {
-    Rdv rdv;
-    rdv.heure = r.int_param("hour");
-    rdv.minute = r.int_param("minute");
-    rdv.eleve = r.string_param("student");
-    rdv.txt = r.string_param("txt");
-    RdvsDb::lock();
-    RdvsDb::get().items.push_back(rdv);
-    // std::sort(RdvsDb::get().items.begin(), RdvsDb::get().items.end(),
-    //           [](auto a, auto b) -> bool {
-    //             return a.txt < b.txt || (a.txt == b.txt && (a.heure < b.heure ||
-    //                    (a.heure == b.heure && a.minute < b.minute)));
-    //           });
-    RdvsDb::get().write();
-    RdvsDb::unlock();
-  } else {
-    return http::Response::bad_request();
-  }
-  return http::Response::Builder()
-      .code(303)
-      .header("location", r.header("Referer").c_str())
-      .close()
-      .build();
+  RdvsDb::lock();
+  bool ok = RdvsDb::get().del_id(r.int_param("id", -1));
+  RdvsDb::get().write();
+  RdvsDb::unlock();
+  if (!ok) return http::Response::not_found();
+  return http::Response::ok();
 }
+
+} // namespace api::rdvs

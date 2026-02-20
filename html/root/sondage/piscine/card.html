@@ -20,11 +20,11 @@
   }
 
   const piscine_card_template = document.querySelector("#piscine-card-template");
-  function create_piscine_card(date, id, parnt) {
+  function create_piscine_card(piscine) {
     const clone = document.importNode(piscine_card_template.content, true);
-    clone.querySelector(".sondage-card-name").textContent = date.replaceAll("-", "/");
-    clone.querySelector(".sondage-card-button").onclick = open_piscine_modal.bind(0, id);
-    set_card_parent(clone, parnt)
+    clone.querySelector(".sondage-card-name").textContent = piscine.date.replaceAll("-", "/");
+    clone.querySelector(".sondage-card-button").onclick = open_piscine_modal.bind(0, piscine.id);
+    set_card_parent(clone, piscine.parent)
     return clone;
   }
 </script>

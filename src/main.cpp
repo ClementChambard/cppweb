@@ -1,4 +1,3 @@
-#include "html/page.hpp"
 #include <db.hpp>
 #include <http/router.hpp>
 #include <http/tcp_server.hpp>
@@ -12,49 +11,49 @@ int main() {
 
   sys::info("====== SERVER INITIALIZING ... ======");
 
-  html::Page roller_page("roller", page::sondage_rollers);
-  html::Page admin_rdv_page("admin_rdv", page::admin_sondages_rdvs);
-  html::Page admin_roller_page("admin_roller", page::admin_sondages_rollers);
-  html::Page admin_piscine_page("admin_piscine", page::admin_sondages_piscine);
-
   SondagesDb sondages_db("private/sondages.db");
   RdvsDb rdvs_db("private/rdvs.db");
   PiscineDb piscine_db("private/piscine.db");
   RollersDb rollers_db("private/rollers.db");
 
-  rdvs_db.add_listener(admin_rdv_page);
-
-  piscine_db.add_listener(admin_piscine_page);
-
-  rollers_db.add_listener(roller_page);
-  rollers_db.add_listener(admin_roller_page);
+  sys::info("====== DB OK ======");
 
   i32 port = std::stoi(sys::get_env_var("PORT", "8080"));
   http::TcpServer server("0.0.0.0", port);
 
+  sys::info("====== DONE ======");
+
   server.router()
-      .page("/")
-      .page("/admin/sondages", is_authentified)
-      .page("/admin/sondages/rdvs", admin_rdv_page, is_authentified)
-      .page("/admin/sondages/rollers", admin_roller_page, is_authentified)
-      .page("/admin/sondages/piscine", admin_piscine_page, is_authentified)
-      .page("/sondage/rdvs")
-      .page("/sondage/piscine")
-      .page("/sondage/rollers", roller_page)
+      // ======== PAGES ========
+      .register_page("/")
+      .register_page("/sondage/rdvs")
+      .register_page("/sondage/piscine")
+      .register_page("/sondage/rollers")
+      .register_page_with_auth("/admin/sondages", is_authentified)
+      .register_page_with_auth("/admin/sondages/rdvs", is_authentified)
+      .register_page_with_auth("/admin/sondages/rollers", is_authentified)
+      .register_page_with_auth("/admin/sondages/piscine", is_authentified)
+      // ======== API ========
+      // auth
       .post("/api/check_admin", api::check_admin)
-      .get("/api/sondages", api::get_sondages)
-      .get("/api/sondages/<id>", api::get_sondage)
-      .put("/api/sondages/<id>", api::put_sondage)
-      .get("/api/rdvs", api::get_rdvs)
-      .post("/api/rdvs/<id>", api::rdvs_id)
-      .put("/api/rdvs/<id>", api::rdvs_id)
-      .post("/api/rdvs", api::rdvs)
-      .post("/api/piscine/<id>", api::piscine_id)
-      .put("/api/piscine/<id>", api::piscine_id)
-      .post("/api/piscine", api::piscine)
-      .get("/api/piscine", api::get_piscine)
-      .post("/api/rollers/<id>", api::rollers_id)
-      .post("/api/rollers", api::rollers);
+      // sondages
+      .get("/api/sondages", api::sondages::get)
+      .put("/api/sondages/<id>", api::sondages::put)
+      // piscine
+      .get("/api/piscine", api::piscine::get)
+      .post("/api/piscine", api::piscine::post)
+      .put("/api/piscine/<id>", api::piscine::put)
+      .del("/api/piscine/<id>", api::piscine::del)
+      // rollers
+      .get("/api/rollers", api::rollers::get)
+      .post("/api/rollers", api::rollers::post)
+      .put("/api/rollers/<id>", api::rollers::put)
+      .del("/api/rollers/<id>", api::rollers::del)
+      // rdvs
+      .get("/api/rdvs", api::rdvs::get)
+      .post("/api/rdvs", api::rdvs::post)
+      .put("/api/rdvs/<id>", api::rdvs::put)
+      .del("/api/rdvs/<id>", api::rdvs::del);
 
   server.start_listen();
 

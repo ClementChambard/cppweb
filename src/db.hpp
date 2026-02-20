@@ -1,26 +1,35 @@
 #ifndef IG_DB_HPP
 #define IG_DB_HPP
 
-#include "html/page.hpp"
+#include <algorithm>
 #include <defines.hpp>
 #include <mutex>
 #include <sstream>
 #include <string>
 #include <string_view>
 #include <vector>
+#include <type_traits>
 
 std::string db_open_file(char const *file_name, i32 &fd);
 void db_write_file(i32 fd, char const *data, u64 size);
 void db_close_file(i32 fd);
 std::string_view db_next_line(std::string_view &sv);
 
-template <typename T> struct Db {
+struct Item {
+  i32 id;
+};
+template <typename T>
+concept Item_c = std::is_base_of_v<Item, T>;
+
+template <Item_c T> struct Db {
   Db(char const *file_name) {
     auto s = db_open_file(file_name, fd);
     auto sv = std::string_view(s);
     u32 count = std::stoi(std::string(db_next_line(sv)));
+    next_id = std::stoi(std::string(db_next_line(sv)));
     items.resize(count);
     for (u32 i = 0; i < count; i++) {
+      items[i].id = std::stoi(std::string(db_next_line(sv)));
       items[i].read(sv);
     }
     instance = this;
@@ -33,36 +42,50 @@ template <typename T> struct Db {
 
   static Db<T> &get() { return *instance; }
 
-  void add_listener(html::Page &p) {
-    write_listeners.push_back(&p.needs_rebuild);
-  }
-
   i32 fd;
+  i32 next_id;
 
   std::vector<T> items;
-
-  std::vector<bool *> write_listeners;
 
   static inline Db<T> *instance = nullptr;
   std::mutex instance_mutex;
   static void lock() { instance->instance_mutex.lock(); }
   static void unlock() { instance->instance_mutex.unlock(); }
 
+  bool del_id(i32 idx) {
+    auto it = std::find_if(items.begin(), items.end(), [idx](T const &item) { return item.id == idx; });
+    if (it == items.end()) return false;
+    items.erase(it);
+    return true;
+  }
+
+  T* get_id(i32 idx) {
+    auto it = std::find_if(items.begin(), items.end(), [idx](T const &item) { return item.id == idx; });
+    if (it == items.end()) return nullptr;
+    return &*it;
+  }
+
+  T& add_new() {
+    items.resize(items.size() + 1);
+    auto &b = items.back();
+    b.id = next_id++;
+    return b;
+  }
+
   void write() {
     std::ostringstream oss;
-    oss << i32(items.size()) << '\n';
+    oss << i32(items.size()) << '\n' << i32(next_id) << '\n';
     for (auto const &i : items) {
+      oss << i32(i.id) << '\n';
       i.write(oss);
     }
     std::string out = oss.str();
     db_write_file(fd, out.c_str(), out.size());
-    for (auto b : write_listeners)
-      *b = true;
   }
 };
 #define DECL_DB(ty) template <> Db<ty> *Db<ty>::instance;
 
-struct Sondage {
+struct Sondage : Item {
   std::string name;
   std::string button_text;
   std::string desc;
@@ -72,7 +95,7 @@ struct Sondage {
   void write(std::ostringstream &) const;
 };
 
-struct Rdv {
+struct Rdv : Item {
   u32 heure;
   u32 minute;
   std::string eleve;
@@ -81,7 +104,7 @@ struct Rdv {
   void write(std::ostringstream &) const;
 };
 
-struct Rollers {
+struct Rollers : Item {
   std::string eleve;
   int size;
   bool has_roller;
@@ -92,7 +115,7 @@ struct Rollers {
   void write(std::ostringstream &) const;
 };
 
-struct Piscine {
+struct Piscine : Item {
   std::string date;
   std::string parent;
   void read(std::string_view &);

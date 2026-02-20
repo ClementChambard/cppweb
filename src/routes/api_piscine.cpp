@@ -1,11 +1,14 @@
 #include "../db.hpp"
 #include "routes.hpp"
-#include <algorithm>
+#include "sys/logger.hpp"
 
-http::Response api::get_piscine(http::Request r) {
+namespace api::piscine {
+
+http::Response get(http::Request r) {
   Json::Value out{Json::ValueType::arrayValue};
   ITER_DB(s, id, PiscineDb) {
     Json::Value o{Json::ValueType::objectValue};
+    o["id"] = s->id;
     o["date"] = s->date;
     o["parent"] = s->parent;
     out.append(o);
@@ -17,84 +20,65 @@ http::Response api::get_piscine(http::Request r) {
       .build();
 }
 
-http::Response api::piscine_id(http::Request r) {
-  i32 idx = r.int_param("id");
-
-  // AUTH check
-  if (!is_authentified(r)) {
-    if (r.params.contains("date"))
-      return http::Response::unauthorized();
-    
-    PiscineDb::lock();
-    bool parend_set = PiscineDb::get().items[idx].parent != "";
-    PiscineDb::unlock();
-    if (r.params.contains("parent") && parend_set)
-      return http::Response::unauthorized();
-  }
-
-  r.body_as_params();
+http::Response put(http::Request r) {
+  bool auth = is_authentified(r);
+  auto v = r.body_as_json();
+  if (v == std::nullopt) return http::Response::bad_request();
+  auto body = *v;
+  if (!body.isObject()) return http::Response::bad_request();
 
   PiscineDb::lock();
-
-  auto old_date = PiscineDb::get().items[idx].date;
-  PiscineDb::get().items[idx].parent = r.string_param("parent", PiscineDb::get().items[idx].parent.c_str());
-  PiscineDb::get().items[idx].date = r.string_param("date", PiscineDb::get().items[idx].date.c_str());
-  if (old_date != PiscineDb::get().items[idx].date)
-    std::sort(PiscineDb::get().items.begin(), PiscineDb::get().items.end(), [](auto a, auto b) -> bool { return a.date < b.date; });
+  auto piscine = PiscineDb::get().get_id(r.int_param("id", -1));
+  if (!piscine) {
+    PiscineDb::unlock();
+    return http::Response::not_found();
+  }
+  if (auth || piscine->parent == "") {
+    piscine->parent = body.get_string("parent", piscine->parent.c_str());
+  }
+  if (auth) {
+    piscine->date = body.get_string("date", piscine->date.c_str());
+  }
   PiscineDb::get().write();
-
   PiscineDb::unlock();
-
-  return http::Response::Builder()
-      .code(303)
-      .header("location", r.header("Referer").c_str())
-      .close()
-      .build();
+  return http::Response::ok();
 }
 
-http::Response api::piscine(http::Request r) {
-  // AUTH check
+http::Response post(http::Request r) {
   if (!is_authentified(r)) {
     return http::Response::unauthorized();
   }
+  Json::Value o{Json::ValueType::objectValue};
+  auto v = r.body_as_json();
+  if (v == std::nullopt) return http::Response::bad_request();
+  auto body = *v;
+  if (!body.isObject()) return http::Response::bad_request();
 
-  // TODO: if someone access to an element while a deletion is occuring, this
-  // may cause problems.
-  //       solution: use unique identifier for each rdv ?
-  r.body_as_params();
-  auto action = r.string_param("action");
-  if (action == "delete") {
-    i32 id = r.int_param("id", -1);
-
-    PiscineDb::lock();
-    auto size = PiscineDb::get().items.size();
-    PiscineDb::unlock();
-
-    if (id < 0 || u32(id) >= size) {
-      return http::Response::bad_request();
-    }
-
-    PiscineDb::lock();
-    PiscineDb::get().items.erase(PiscineDb::get().items.begin() + id);
-    PiscineDb::get().write();
-    PiscineDb::unlock();
-  } else if (action == "create") {
-    Piscine piscine;
-    piscine.parent = r.string_param("parent");
-    piscine.date = r.string_param("date");
-    PiscineDb::lock();
-    PiscineDb::get().items.push_back(piscine);
-    std::sort(PiscineDb::get().items.begin(), PiscineDb::get().items.end(),
-              [](auto a, auto b) -> bool { return a.date < b.date; });
-    // TODO: insert sorted ?
-    PiscineDb::get().write();
-    PiscineDb::unlock();
-  } else {
-    return http::Response::bad_request();
-  }
+  PiscineDb::lock();
+  auto &piscine = PiscineDb::get().add_new();
+  o["id"] = piscine.id;
+  o["date"] = piscine.date = body.get_string("date");
+  o["parent"] = piscine.parent = body.get_string("parent");
+  PiscineDb::get().write();
+  PiscineDb::unlock();
   return http::Response::Builder()
-      .code(303)
-      .header("location", r.header("Referer").c_str())
-      .close()
-      .build();
+    .code(201)
+    .json(o)
+    .header("Location", (std::string("/api/piscine/") + o["id"].asString()).c_str())
+    .close()
+    .build();
 }
+
+http::Response del(http::Request r) {
+  if (!is_authentified(r)) {
+    return http::Response::unauthorized();
+  }
+  PiscineDb::lock();
+  bool ok = PiscineDb::get().del_id(r.int_param("id", -1));
+  PiscineDb::get().write();
+  PiscineDb::unlock();
+  if (!ok) return http::Response::not_found();
+  return http::Response::ok();
+}
+
+} // namespace api::piscine

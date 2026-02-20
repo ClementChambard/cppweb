@@ -1,13 +1,13 @@
 #include "../db.hpp"
-#include "http/response.hpp"
 #include "routes.hpp"
-#include <json/json.h>
 
-http::Response api::get_sondages(http::Request r) {
-  // TODO: can't change eleve if not authentified ?
+namespace api::sondages {
+
+http::Response get(http::Request r) {
   Json::Value out{Json::ValueType::arrayValue};
   ITER_DB(s, id, SondagesDb) {
     Json::Value o{Json::ValueType::objectValue};
+    o["id"] = s->id;
     o["active"] = s->active;
     o["name"] = s->name;
     o["desc"] = s->desc;
@@ -22,49 +22,28 @@ http::Response api::get_sondages(http::Request r) {
       .build();
 }
 
-http::Response api::get_sondage(http::Request r) {
-  Json::Value out{Json::ValueType::objectValue};
-  r.body_as_params();
-  i32 idx = r.int_param("id");
-  bool ok = true;
-  SondagesDb::lock();
-  if (SondagesDb::get().items.size() > u32(idx) && idx >= 0) {
-    auto &item = SondagesDb::get().items[idx];
-    out["active"] = item.active;
-    out["name"] = item.name;
-    out["desc"] = item.desc;
-    out["route"] = item.route;
-    out["btn_text"] = item.button_text;
-  } else {
-    ok = false;
-  }
-  SondagesDb::unlock();
-  if (!ok) return http::Response::not_found();
-  return http::Response::Builder()
-    .code(200)
-    .json(out)
-    .close()
-    .build();
-}
-
-http::Response api::put_sondage(http::Request r) {
+http::Response put(http::Request r) {
   if (!is_authentified(r))
     return http::Response::unauthorized();
-  r.body_as_params();
+  auto v = r.body_as_json();
+  if (v == std::nullopt) return http::Response::bad_request();
+  auto body = *v;
+  if (!body.isObject()) return http::Response::bad_request();
 
-  i32 idx = r.int_param("id");
   SondagesDb::lock();
-  SondagesDb::get().items[idx].active =
-      r.int_param("active", SondagesDb::get().items[idx].active);
-  SondagesDb::get().items[idx].name =
-      r.string_param("name", SondagesDb::get().items[idx].name.c_str());
-  SondagesDb::get().items[idx].button_text = r.string_param(
-      "btn_text", SondagesDb::get().items[idx].button_text.c_str());
-  SondagesDb::get().items[idx].desc =
-      r.string_param("desc", SondagesDb::get().items[idx].desc.c_str());
-  SondagesDb::get().items[idx].route =
-      r.string_param("route", SondagesDb::get().items[idx].route.c_str());
+  auto sondage = SondagesDb::get().get_id(r.int_param("id", -1));
+  if (!sondage) {
+    SondagesDb::unlock();
+    return http::Response::not_found();
+  }
+  sondage->active = body.get_bool("active", sondage->active);
+  sondage->name = body.get_string("name", sondage->name.c_str());
+  sondage->button_text = body.get_string("btn_text", sondage->button_text.c_str());
+  sondage->desc = body.get_string("desc", sondage->desc.c_str());
+  sondage->route = body.get_string("route", sondage->route.c_str());
   SondagesDb::get().write();
   SondagesDb::unlock();
   return http::Response::ok();
 }
+
+} // namespace api::sondages

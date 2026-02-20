@@ -8,25 +8,35 @@
 <div class="sondage-info"></div>
 <div class="card-list-container"></div>
 
-<{components::piscine::piscine_card}/>
+<{root::sondage::piscine::card}/>
 
 <script>
-  let cur_idx = 0;
   const modal = document.getElementById("reserve-piscine-modal");
   const parent_input = document.querySelector('input[name="parent"]');
   const card_list = document.querySelector(".card-list-container");
+  let piscines = [];
+  let cur_piscine = undefined;
+  let cur_card = undefined;
 
   function open_piscine_modal(idx) {
-    cur_idx = idx;
-    parent_input.value = ""
+    let i = 0;
+    for (p of piscines) {
+      if (p.id == idx) {
+        cur_piscine = p;
+        cur_card = card_list.children[i];
+        break;
+      }
+      i++;
+    }
+    parent_input.value = "";
     modal.togglePopover();
   }
 
   function submit_piscine_modal() {
-    set_card_parent(card_list.children[cur_idx], parent_input.value);
-    fetch(`/api/piscine/${cur_idx}`, {
+    set_card_parent(cur_card, parent_input.value);
+    fetch(`/api/piscine/${cur_piscine.id}`, {
       "method": "PUT",
-      "body": `parent=${parent_input.value}`
+      "body": JSON.stringify({parent: parent_input.value})
     });
     modal.togglePopover();
   }
@@ -35,7 +45,7 @@
     .then(response => response.json())
     .then(response => {
       for (o of response) {
-        if (!o.name == "piscine") continue;
+        if (o.name !== "piscine") continue;
         document.querySelector(".sondage-info").textContent = o.desc;
         break;
       }
@@ -43,10 +53,9 @@
   fetch("/api/piscine", { method: "GET", headers: { "Accept": "application/json" }})
     .then(response => response.json())
     .then(response => {
-      let idx = 0;
+      piscines = response;
       for (o of response) {
-        card_list.appendChild(create_piscine_card(o.date, idx, o.parent));
-        idx++;
+        card_list.appendChild(create_piscine_card(o));
       }
     });
 </script>

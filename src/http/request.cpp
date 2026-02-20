@@ -1,6 +1,8 @@
 #include "request.hpp"
 #include "http/url_params.hpp"
 #include "sys/logger.hpp"
+#include <json/reader.h>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -26,6 +28,28 @@ void Request::body_as_params() {
   http::UrlParams params;
   http::url_params(body, params);
   this->params.merge(params);
+}
+
+bool JsonBody::get_bool(char const *name, bool default_value) {
+  if (isMember(name)) return (*this)[name].asBool();
+  return default_value;
+}
+i32 JsonBody::get_int(char const *name, i32 default_value) {
+  if (isMember(name)) return (*this)[name].asInt();
+  return default_value;
+}
+std::string JsonBody::get_string(char const *name, char const *default_value) {
+  if (isMember(name)) return (*this)[name].asString();
+  return default_value;
+}
+
+std::optional<JsonBody> Request::body_as_json() {
+  static Json::Reader r;
+
+  JsonBody out;
+  bool ok = r.parse(body, out);
+  if (ok) return out;
+  return std::nullopt;
 }
 
 bool next_space_sep(std::string_view &line, std::string_view &sub) {

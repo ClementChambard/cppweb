@@ -1,0 +1,46 @@
+<template id="piscine-card-template">
+  <div class="admin-card-container">
+    <div class="admin-card-left">
+      <div class="text-id"></div>
+      <div id="date" class="text-semibold"></div>
+      <div id="answer"></div>
+    </div>
+    <div class="admin-card-right">
+      <button id="edit" class="btn-component reduce-icon">
+        <{components::icon} size="24" icon="edit" class="btn-component-icon" />
+        <span class="btn-component-label">modifier</span>
+      </button>
+      <button id="delete" class="btn-component reduce-icon">
+        <{components::icon} size="24" icon="delete" class="btn-component-icon" />
+        <span class="btn-component-label">supprimer</span>
+      </button>
+    </div>
+  </div>
+</template>
+<script>
+  const piscine_card_template = document.querySelector("#piscine-card-template");
+  function set_card_date(card, date) {
+    card.querySelector("#date").textContent = date.replaceAll("-", "/");
+  }
+
+  function set_card_parent(card, parnt) {
+    const div = card.querySelector("#answer");
+    if (parnt == "") {
+      div.classList = "text-color-ok";
+      div.textContent = "Libre";
+    } else {
+      div.classList = "adjacent-text";
+      div.innerHTML = `Réservé par <span class="rdv-card-name-text">${parnt}</span>`;
+    }
+  }
+
+  function create_piscine_card(piscine) {
+    const clone = document.importNode(piscine_card_template.content, true);
+    clone.querySelector(".text-id").textContent = `${piscine.id}`;
+    clone.querySelector("#delete").onclick = on_delete_piscine.bind(piscine.id, piscine.id);
+    clone.querySelector("#edit").onclick = open_edit_piscine_modal.bind(piscine.id, piscine.id);
+    set_card_date(clone, piscine.date);
+    set_card_parent(clone, piscine.parent)
+    return clone;
+  }
+</script>

@@ -7,11 +7,11 @@
 namespace http {
 
 static void setup_resource_type(Resource &res) {
-  if (res.file_name.ends_with(".css"))
-    res.resource_type = "text/css; charset=UTF-8";
-  if (res.file_name.ends_with(".ico"))
-    res.resource_type = "image/x-icon";
   res.resource_type = "*/*";
+  if (res.file_name.ends_with(".css") || res.file_name.ends_with(".css.gz"))
+    res.resource_type = "text/css; charset=UTF-8";
+  if (res.file_name.ends_with(".ico") || res.file_name.ends_with(".ico.gz"))
+    res.resource_type = "image/x-icon";
   res.gzipped = res.file_name.ends_with(".gz");
 }
 

@@ -14,6 +14,7 @@ struct Response {
   std::string body;
 
   static Response ok();
+  static Response created();
   static Response not_found();
   static Response bad_request();
   static Response unauthorized();

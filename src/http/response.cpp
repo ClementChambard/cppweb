@@ -60,6 +60,10 @@ Response Response::ok() {
   return Response::Builder().code(204).close().build();
 }
 
+Response Response::created() {
+  return Response::Builder().code(201).close().build();
+}
+
 Response Response::not_found() { return error_response(404); }
 
 Response Response::bad_request() { return error_response(400); }

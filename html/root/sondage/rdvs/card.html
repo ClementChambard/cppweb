@@ -23,11 +23,11 @@
   }
 
   const rdv_card_template = document.querySelector("#rdv-card-template");
-  function create_rdv_card(time, id, student) {
+  function create_rdv_card(rdv) {
     const clone = document.importNode(rdv_card_template.content, true);
-    clone.querySelector(".sondage-card-name").textContent = time;
-    clone.querySelector(".sondage-card-button").onclick = open_rdv_modal.bind(0, id, time);
-    set_card_student(clone, student)
+    clone.querySelector(".sondage-card-name").textContent = time_txt(rdv);
+    clone.querySelector(".sondage-card-button").onclick = open_rdv_modal.bind(0, rdv.id);
+    set_card_student(clone, rdv.eleve)
     return clone;
   }
 </script>

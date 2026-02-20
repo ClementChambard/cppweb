@@ -1,0 +1,80 @@
+<template id="roller-card-template">
+  <div class="admin-card-container">
+    <div class="admin-card-left">
+      <div class="text-id"></div>
+      <div id="eleve" class="text-semibold"></div>
+      <div class="roller-admin-card-text-line">
+        <div id="roller">Rollers</div>
+        <div id="helmet">Casque</div>
+        <div id="protect">Protections</div>
+        <div id="size"></div>
+        <div class="text-color-wait">En attente de réponse</div>
+      </div>
+    </div>
+    <div class="admin-card-right">
+      <input type="hidden" name="action" value="delete" />
+      <input type="hidden" name="id" value="{{id}}" />
+      <button id="edit" class="btn-component reduce-icon">
+        <{components::icon} size="24" icon="edit" class="btn-component-icon" />
+        <span class="btn-component-label">modifier</span>
+      </button>
+      <button id="delete" class="btn-component reduce-icon">
+        <{components::icon} size="24" icon="delete" class="btn-component-icon" />
+        <span class="btn-component-label">supprimer</span>
+      </button>
+    </div>
+  </div>
+</template>
+<script>
+  const roller_card_template = document.querySelector("#roller-card-template");
+  function set_card_eleve(card, val) {
+    card.querySelector("#eleve").textContent = val;
+  }
+
+  function set_card_has_answered(card, val) {
+    if (val) {
+      card.querySelector("#roller").hidden = false;
+      card.querySelector("#size").hidden = false;
+      card.querySelector("#helmet").hidden = false;
+      card.querySelector("#protect").hidden = false;
+      card.querySelector(".text-color-wait").hidden = true;
+    } else {
+      card.querySelector("#roller").hidden = true;
+      card.querySelector("#size").hidden = true;
+      card.querySelector("#helmet").hidden = true;
+      card.querySelector("#protect").hidden = true;
+      card.querySelector(".text-color-wait").hidden = false;
+    }
+  }
+
+  function set_card_has_roller(clone, val) {
+    clone.querySelector("#roller").classList = val ? "text-color-ok" : "text-color-bad";
+    clone.querySelector("#size").hidden = !val;
+  }
+
+  function set_card_has_helmet(clone, val) {
+    clone.querySelector("#helmet").classList = val ? "text-color-ok" : "text-color-bad";
+  }
+
+  function set_card_has_protect(clone, val) {
+    clone.querySelector("#protect").classList = val ? "text-color-ok" : "text-color-bad";
+  }
+
+  function set_card_size(clone, val) {
+    clone.querySelector("#size").textContent = val;
+  }
+
+  function create_roller_card(roller) {
+    const clone = document.importNode(roller_card_template.content, true);
+    clone.querySelector(".text-id").textContent = `${roller.id}`;
+    clone.querySelector("#delete").onclick = on_delete_roller.bind(roller.id, roller.id);
+    clone.querySelector("#edit").onclick = open_edit_roller_modal.bind(roller.id, roller.id);
+    set_card_has_answered(clone, roller.has_answered);
+    set_card_has_roller(clone, roller.has_roller);
+    set_card_has_helmet(clone, roller.has_helmet);
+    set_card_has_protect(clone, roller.has_protect);
+    set_card_size(clone, roller.size);
+    set_card_eleve(clone, roller.eleve);
+    return clone;
+  }
+</script>

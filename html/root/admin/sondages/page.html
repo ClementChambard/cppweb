@@ -45,7 +45,7 @@
     console.log("OK!", `/api/sondages/${current_id}`);
     fetch(`/api/sondages/${current_id}`, {
       "method": "PUT",
-      "body": `btn_text=${encodeURI(btn_text_input.value)}&desc=${encodeURI(desc_input.value)}`
+      "body": JSON.stringify({ btn_text: btn_text_input.value, desc:desc_input.value })
     });
     sondages[current_id].btn_text = btn_text_input.value;
     sondages[current_id].desc = desc_input.value;
@@ -53,12 +53,11 @@
   }
 
   function toggle_active(idx) {
-    const new_active = sondages[idx].active ? "0" : "1";
+    sondages[idx].active = !sondages[idx].active;
     fetch(`/api/sondages/${idx}`, {
       "method": "PUT",
-      "body": `active=${new_active}`
+      "body": JSON.stringify({ active: sondages[idx].active })
     });
-    sondages[idx].active = !sondages[idx].active;
     let btn = insert_into.children[idx].querySelector('#active-toggle');
     btn.classList.toggle('gray')
     btn.textContent = sondages[idx].active ? "actif" : "inactif";

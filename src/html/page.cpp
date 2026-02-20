@@ -15,31 +15,24 @@ static std::string get_page_filename(Page &p) {
 }
 
 static bool check_page_created(Page &p) {
+  if (p.etag == "") return false;
   return sys::file_info((get_page_filename(p) + ".gz").c_str()).exists;
-}
-
-void rebuild(Page &p, http::Request &r) {
-  std::string html = p.build_html(r);
-
-  std::string filename = get_page_filename(p);
-  sys::write_text_file(filename.c_str(), html);
-
-  char const *args[] = {"gzip", "-f", filename.c_str()};
-  sys::subprocess_run(args);
-
-  p.etag =
-      '"' +
-      std::to_string(std::chrono::utc_clock::now().time_since_epoch().count()) +
-      '"';
-  p.needs_rebuild = false;
 }
 
 http::Response Page::get_response(http::Request r) {
   if (!check_authorization(r))
     return http::Response::unauthorized();
   
-  if (needs_rebuild || !check_page_created(*this)) {
-    rebuild(*this, r);
+  if (!check_page_created(*this)) {
+    std::string html = build_html(r);
+
+    std::string filename = get_page_filename(*this);
+    sys::write_text_file(filename.c_str(), html);
+
+    char const *args[] = {"gzip", "-f", filename.c_str()};
+    sys::subprocess_run(args);
+
+    etag = '"' + std::to_string(std::chrono::utc_clock::now().time_since_epoch().count()) + '"';
   } else if (auto header_it = r.headers.find("If-None-Match");
              header_it != r.headers.end()) {
     if (etag == header_it->second) {
@@ -71,7 +64,7 @@ void maybe_add_page_file(std::string const &name, std::vector<std::string> & out
 }
 
 
-Page Page::from_route(const char *route) {
+Page::Page(const char *route) {
   std::string rte = route;
   std::vector<std::string> segments;
   size_t idx = 0;
@@ -91,7 +84,8 @@ Page Page::from_route(const char *route) {
       idx += 1;
     }
   }
-  return Page(route, [segments](http::Request &) -> std::string {
+  name = route;
+  build_html = [segments](http::Request &) -> std::string {
     std::string out = "";
     for (auto i = segments.size(); i > 0; i--) {
       CodeBuilder b{segments[i-1].c_str()};
@@ -99,7 +93,7 @@ Page Page::from_route(const char *route) {
       out = b.build();
     }
     return out;
-  });
+  };
 }
 
 

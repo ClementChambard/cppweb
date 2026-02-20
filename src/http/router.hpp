@@ -42,21 +42,13 @@ struct Router {
   Router &del(char const *endpoint, EndpointFunc fn) {
     return route(endpoint, Request::Kind::DELETE, fn);
   }
-  Router &page(char const *endpoint, html::Page &page) {
-    return get(endpoint, html::page(page));
+  Router &register_page(char const *endpoint) {
+    return get(endpoint, html::page(html::Page(endpoint)));
   }
-  Router &page(char const *endpoint) {
-    return get(endpoint, html::page_keep(html::Page::from_route(endpoint)));
-  }
-  Router &page(char const *endpoint, html::Page &page,
-               std::function<bool(Request &)> auth) {
+  Router &register_page_with_auth(char const *endpoint, std::function<bool(Request &)> auth) {
+    html::Page page(endpoint);
     page.check_authorization = auth;
     return get(endpoint, html::page(page));
-  }
-  Router &page(char const *endpoint, std::function<bool(Request &)> auth) {
-    auto page = html::Page::from_route(endpoint);
-    page.check_authorization = auth;
-    return get(endpoint, html::page_keep(page));
   }
 
   std::vector<Route> get_routes;

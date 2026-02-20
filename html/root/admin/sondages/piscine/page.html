@@ -1,23 +1,96 @@
-<{components::modals::modal} popover_id="add-piscine-modal" title="Ajouter date piscine" action_label="Ajouter"
-  endpoint="/api/piscine">
+<{components::modals::modal_js} popover_id="add-piscine-modal" title="Ajouter date piscine" action_label="Ajouter"
+  onclick="submit_add_piscine()">
   <div class="modal-body-container">
     <{components::heading} title="Ajout de scéance" subtitle="Ajouter une date de scéance piscine" />
-    <input type="hidden" name="action" value="create" />
     <{components::inputs::input} label="Date" name="date" type="date" required />
   </div>
-</{components::modals::modal}>
+</{components::modals::modal_js}>
+
+<{components::modals::modal_js} popover_id="edit-piscine-modal" title="Modifier piscine" action_label="Modifier"
+  onclick="submit_edit_piscine()">
+  <div class="modal-body-container">
+    <{components::heading} title="Modification de roller" subtitle="" />
+    <{components::inputs::input} label="Date" name="date" type="date" required />
+    <{components::inputs::input} label="Nom" name="parent" />
+  </div>
+</{components::modals::modal_js}>
 
 <div class="admin-list-page">
-  <div class="admin-card-list-container">
-    {{children}}
-  </div>
+  <div class="admin-card-list-container"></div>
   <button class="btn-component outline" popovertarget="add-piscine-modal">
     <{components::icon} size="24" icon="add_circle_outline" class="btn-component-icon-side" />
     <span>Ajouter Séance</span>
   </button>
 </div>
 
-<{components::piscine::piscine_card}/>
+<{root::admin::sondages::piscine::card}/>
 
 <script>
+  // TODO: sort ?
+  let cur_piscine = undefined;
+  let cur_card = undefined;
+  let piscines = [];
+  const card_list = document.querySelector(".admin-card-list-container");
+  const edit_modal = document.querySelector("#edit-piscine-modal");
+  const edit_date = edit_modal.querySelector('input[name="date"]');
+  const edit_parent = edit_modal.querySelector('input[name="parent"]');
+  const add_modal = document.querySelector("#add-piscine-modal");
+  const add_date = add_modal.querySelector('input[name="date"]');
+
+  function on_delete_piscine(id) {
+    fetch(`/api/piscine/${id}`, { method: "DELETE" });
+    let idx = 0;
+    for (r of piscines) {
+      if (r.id == id) {
+        piscines.splice(idx, 1);
+        card_list.removeChild(card_list.children[idx]);
+        break;
+      }
+      idx++;
+    }
+  }
+
+  function open_edit_piscine_modal(id) {
+    let i = 0;
+    for (p of piscines) {
+      if (p.id == id) {
+        cur_piscine = p;
+        cur_card = card_list.children[i];
+        break;
+      }
+      i++;
+    }
+    edit_modal.querySelector(".heading-title").textContent = `Modifier ${id}`;
+    edit_date.value = cur_piscine.date;
+    edit_parent.value = cur_piscine.parent;
+    edit_modal.togglePopover();
+  }
+
+  function submit_add_piscine() {
+    fetch(`/api/piscine`, { method: "POST", body: JSON.stringify({date: add_date.value})})
+      .then(response => response.json())
+      .then(piscine => {
+        piscines.push(piscine);
+        card_list.appendChild(create_piscine_card(piscine));
+      })
+    add_modal.togglePopover();
+  }
+
+  function submit_edit_piscine() {
+    cur_piscine.date = edit_date.value;
+    cur_piscine.parent = edit_parent.value;
+    set_card_date(cur_card, cur_piscine.date);
+    set_card_parent(cur_card, cur_piscine.parent);
+    fetch(`/api/piscine/${cur_piscine.id}`, { method: "PUT", body: JSON.stringify(cur_piscine)});
+    edit_modal.togglePopover();
+  }
+
+  fetch("/api/piscine", { method: "GET", headers: { "Accept": "application/json" }})
+    .then(response => response.json())
+    .then(response => {
+      piscines = response;
+      for (o of piscines) {
+        card_list.appendChild(create_piscine_card(o));
+      }
+    });
 </script>

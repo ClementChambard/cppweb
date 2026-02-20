@@ -1,10 +1,5 @@
 <div class="sondage-btns-container"></div>
-<template id="sondage-btn">
-  <a class="sondage-btn transition"></a>
-</template>
 <script>
-  const sondage_button_template = document.querySelector("#sondage-btn");
-  const insert_into = document.querySelector(".sondage-btns-container");
   fetch("/api/sondages", {
     method: "GET",
     headers: {
@@ -12,13 +7,14 @@
     },
   }).then(response => response.json())
     .then(response => {
+      const insert_into = document.querySelector(".sondage-btns-container");
       for (o of response) {
         if (!o.active) continue;
-        const clone = document.importNode(sondage_button_template.content, true);
-        const a = clone.querySelector("a");
+        const a = document.createElement("a");
+        a.classList = "sondage-btn transition"
         a.href = o.route;
         a.textContent = o.btn_text;
-        insert_into.appendChild(clone);
+        insert_into.appendChild(a);
       }
   });
 </script>
