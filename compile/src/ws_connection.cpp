@@ -8,7 +8,7 @@ http::TcpServer *WS_SERVER;
 
 void ws_add_script_to_document(html::Document &doc) {
   auto &head = std::get<html::Element>(doc.root_node.children[0]);
-  head.children.push_back(html::html("script", {{"src", "test.js"}}, {}, {}));
+  head.children.push_back(html::html("script", {{"src", "/test.js"}}, {}, {}));
 }
 
 void ws_open_connection() {
