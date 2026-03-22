@@ -41,8 +41,14 @@ run)
   if [[ -z "$2" ]]; then
     .cppweb/bin/server
   else
-    echo "running in mode $2"
-    .cppweb/bin/server $2
+    if [[ "$2" -eq "-p" ]]; then
+      echo "PORT = $3"
+      export PORT="$3"
+      .cppweb/bin/server
+    else
+      echo "running in mode $2"
+      .cppweb/bin/server $2
+    fi
   fi
   ;;
 update)
@@ -79,4 +85,5 @@ compile)
   cd build
   cmake ..
   ninja
+  ;;
 esac

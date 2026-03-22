@@ -11,6 +11,7 @@
 #include <json/json.h>
 #include <json/reader.h>
 #include <sstream>
+#include <sys/env.hpp>
 #include <sys/logger.hpp>
 
 struct Config {
@@ -107,7 +108,9 @@ int main(int argc, char **argv) {
   auto api = get_api();
   REGISTERED_SERVER_COMPONENTS = get_registered_server_components();
 
-  auto server = http::HttpServer("0.0.0.0", 8080);
+  auto port = std::stoi(sys::get_env_var("PORT", "8080"));
+
+  auto server = http::HttpServer("0.0.0.0", port);
 
   server.router().forward(c.base_api_route.c_str(), api->get_func());
 
