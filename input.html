@@ -1,0 +1,137 @@
+<html>
+<TestServer a="1">
+  abcde
+</TestServer>
+
+<head>
+  <title>test</title>
+  <link rel="stylesheet" href="css/reset.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/test.css" />
+  <!--<meta http-equiv="refresh" content="1" />-->
+  <script src="test.js"></script>
+</head>
+
+<body>
+  <div style="display:flex;padding:5px;gap:0.5rem;">
+    <Button variant="primary">Primary</Button>
+    <Button variant="secondary">Secondary</Button>
+    <Button variant="tertiary">Tertiary</Button>
+    <Button variant="destructive">Destructive</Button>
+    <Button variant="muted">Muted</Button>
+    <Button variant="outline">Outline</Button>
+    <Button variant="ghost">Ghost</Button>
+  </div>
+  <div style="margin-top:10px;padding:5px;display:flex;gap:0.5rem;">
+    <Button size="default">Default</Button>
+    <Button size="sm">Small</Button>
+    <Button size="xs">XSmall</Button>
+    <Button size="lg">Large</Button>
+    <Button size="icon">Ic</Button>
+  </div>
+  <div style="margin-top:10px;padding:5px;display:flex;gap:0.5rem;">
+    <Button disabled size="default">Default</Button>
+    <Button disabled size="sm">Small</Button>
+    <Button disabled size="xs">XSmall</Button>
+    <Button disabled size="lg">Large</Button>
+    <Button disabled size="icon">Ic</Button>
+  </div>
+  <div style="display:flex;margin-top:10px;padding:5px;gap:5px">
+    <Input type="text" placeholder="Input some text here" />
+    <Input disabled type="text" placeholder="Input some text here" />
+  </div>
+  <div style="display:flex;margin-top:10px;padding:5px;gap:5px">
+    <Textarea style="min-height:100px" placeholder="Input some text here">talkjlkjalkjs</Textarea>
+    <Textarea style="min-height:100px" disabled placeholder="Input some text here"></Textarea>
+  </div>
+  <Card style="margin:10px">
+    <CardHeader>
+      <CardTitle>Test</CardTitle>
+      <CardDescription>description</CardDescription>
+    </CardHeader>
+    <DottedSeparator style="padding: 0 1.5rem" />
+    <CardContent style="padding-top:1.5rem">
+      <div>content</div>
+      <div>content</div>
+      <div>content</div>
+    </CardContent>
+    <DottedSeparator style="padding: 0 1.5rem" />
+    <CardFooter style="padding-top:1.5rem">
+      footer1
+    </CardFooter>
+  </Card>
+  <div style="margin-top:10px;padding:5px;display:flex;gap:0.5rem;">
+    <Badge variant="primary">Primary</Badge>
+    <Badge variant="secondary">Secondary</Badge>
+    <Badge variant="destructive">Destructive</Badge>
+    <Badge variant="outline">Outline</Badge>
+  </div>
+  <Skeleton style="padding:10px;margin:10px">
+    Loading...
+  </Skeleton>
+  <Table>
+    <TableCaption>
+      Formation développeur·euse front-end 2021
+    </TableCaption>
+    <TableHeader>
+      <TableRow>
+        <TableHead scope="col">Nom</TableHead>
+        <TableHead scope="col">Principal intérêt</TableHead>
+        <TableHead scope="col">Âge</TableHead>
+      </TableRow>
+    </TableHeader>
+    <TableBody>
+      <TableRow>
+        <TableHead scope="row">Chris</TableHead>
+        <TableCell role="checkbox">Tables HTML</TableCell>
+        <TableCell>22</TableCell>
+      </TableRow>
+      <TableRow>
+        <TableHead scope="row">Dennis</TableHead>
+        <TableCell>Accessibilité web</TableCell>
+        <TableCell>45</TableCell>
+      </TableRow>
+      <TableRow>
+        <TableHead scope="row">Sarah</TableHead>
+        <TableCell>Frameworks JavaScript</TableCell>
+        <TableCell>29</TableCell>
+      </TableRow>
+      <TableRow>
+        <TableHead scope="row">Karen</TableHead>
+        <TableCell>Performance web</TableCell>
+        <TableCell>36</TableCell>
+      </TableRow>
+    </TableBody>
+    <TableFooter>
+      <TableRow>
+        <TableHead scope="row" colspan="2">Âge moyen</TableHead>
+        <TableCell>33</TableCell>
+      </TableRow>
+    </TableFooter>
+  </Table>
+  <div>
+    Some text to move the button to the right
+
+    <Popover id="somepopover">
+      <PopoverTrigger asChild>
+        <Button>Popover</Button>
+      </PopoverTrigger>
+      <PopoverContent style="display:flex;flex-direction:column;gap:0.25rem;padding:0.5rem;" side="top" sideOffset="10">
+        <Button variant="ghost">Option A</Button>
+        <Button variant="ghost">Option B</Button>
+        <Button variant="ghost">Option C</Button>
+        <Popover id="unautre">
+          <PopoverTrigger asChild>
+            <Button variant="secondary">Un Autre</Button>
+          </PopoverTrigger>
+          <PopoverContent side="right" sideOffset="20">
+            Ah... oh no..
+          </PopoverContent>
+        </Popover>
+      </PopoverContent>
+    </Popover>
+  </div>
+  <SVGIcon href="public/check.svg" />
+</body>
+
+</html>
