@@ -46,7 +46,8 @@ Response::operator std::string() {
 Response error_response(u32 code) {
   return Response::Builder()
       .code(code)
-      .body("text/*; charset=UTF-8", std::to_string(code) + " " +code_string(code))
+      .body("text/*; charset=UTF-8",
+            std::to_string(code) + " " + code_string(code))
       .close()
       .build();
 }
@@ -64,5 +65,15 @@ Response Response::not_found() { return error_response(404); }
 Response Response::bad_request() { return error_response(400); }
 
 Response Response::unauthorized() { return error_response(401); }
+
+std::string SetCookie::get() const {
+  auto out = name + "=" + value;
+
+  if (path != std::nullopt) {
+    out += "; Path=" + *path;
+  }
+
+  return out;
+}
 
 } // namespace http

@@ -7,17 +7,6 @@
 
 namespace api {
 
-void get_body(Context &ctx, http::Request const &req) {
-  // TODO: check content type
-  static Json::Reader r;
-
-  Json::Value out;
-  bool ok = r.parse(req.body, out);
-  if (ok) {
-    ctx.request_body = out;
-  }
-}
-
 std::vector<std::string> path_get(std::string route,
                                   http::UrlParams *query_params) {
   std::vector<std::string> out;
@@ -59,7 +48,7 @@ http::Response Api::dispatch_request(std::string route,
                                      http::Request const &req) {
   Context ctx;
 
-  get_body(ctx, req);
+  ctx.set_req_data(req);
 
   bool found = false;
 

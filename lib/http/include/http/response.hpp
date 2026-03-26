@@ -7,6 +7,15 @@
 
 namespace http {
 
+struct SetCookie {
+  std::string name;
+  std::string value;
+  std::optional<std::string> path{};
+  // TODO:
+
+  std::string get() const;
+};
+
 struct Response {
   u32 code;
   std::unordered_map<std::string, std::string> headers;
@@ -44,6 +53,15 @@ struct Response::Builder {
     return *this;
   }
   Builder &close() { return header("Connection", "close"); }
+
+  Builder &set_cookie(SetCookie cookie) {
+    // TODO: support multiple cookies
+    return header("Set-Cookie", cookie.get().c_str());
+  }
+  Builder &set_cookie(std::string const &name, std::string const &value) {
+    return set_cookie({name, value});
+  }
+
   Response build(bool nobody = false) {
     if (!m_has_body && !nobody)
       header("Content-Length", "0");

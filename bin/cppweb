@@ -66,6 +66,7 @@ update)
 
   # LIBRARIES
   cp_echo $CPPWEB_DIR/build/lib/html/libhtml.a .cppweb/lib
+  cp_echo $CPPWEB_DIR/build/lib/http/libhttp.a .cppweb/lib
   cp_echo $CPPWEB_DIR/build/lib/api/libapi.a .cppweb/lib
   cp_echo $CPPWEB_DIR/build/lib/system/libsystem.a .cppweb/lib
   cp_echo $CPPWEB_DIR/build/lib/db/libdb.a .cppweb/lib

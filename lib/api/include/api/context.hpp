@@ -1,6 +1,7 @@
 #pragma once
 
 #include <any>
+#include <http/request.hpp>
 #include <http/response.hpp>
 #include <http/url_params.hpp>
 #include <json/value.h>
@@ -22,11 +23,24 @@ struct Context {
     return std::any_cast<T &>(m_data[name]);
   }
 
-  bool ok(u32 code = 200) { res.code(code); return true; }
-  bool error(u32 code) { res.code(code); return false; }
+  bool ok(u32 code = 200) {
+    res.code(code);
+    return true;
+  }
+  bool error(u32 code) {
+    res.code(code);
+    return false;
+  }
+
+  std::optional<std::string> get_cookie(std::string const &name);
 
 private:
   std::map<std::string, std::any> m_data;
+  std::map<std::string, std::string> m_cookies;
+
+  void set_req_data(http::Request const &req);
+
+  friend class Api;
 };
 
 } // namespace api
