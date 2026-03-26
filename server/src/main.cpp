@@ -52,8 +52,8 @@ struct LoadedData {
   using fn_delete_api_t = void();
   using fn_get_registered_server_components_t = components::ServerMap *();
   using fn_get_registered_components_t = components::Map *();
-  using fn_set_route_param_t = void(std::string, std::string);
-  using fn_instanciate_context_t = void *();
+  using fn_instanciate_context_t =
+      void *(html::ServerRenderingContext const &ctx);
   using fn_cleanup_context_t = void(void *);
 
   std::string so_file;
@@ -65,7 +65,6 @@ struct LoadedData {
   fn_get_registered_server_components_t *get_registered_server_components =
       nullptr;
   fn_get_registered_components_t *get_registered_components = nullptr;
-  fn_set_route_param_t *set_route_param = nullptr;
   fn_instanciate_context_t *instanciate_context = nullptr;
   fn_cleanup_context_t *cleanup_context = nullptr;
 
@@ -105,7 +104,6 @@ void LoadedData::load(std::string const &file) {
   get_registered_server_components =
       get_func<fn_get_registered_server_components_t>(
           so, "get_registered_server_components");
-  set_route_param = get_func<fn_set_route_param_t>(so, "set_route_param");
   instanciate_context =
       get_func<fn_instanciate_context_t>(so, "instanciate_context", true);
   if (instanciate_context)
@@ -131,7 +129,6 @@ void LoadedData::close() {
   get_registered_server_components = nullptr;
   instanciate_context = nullptr;
   cleanup_context = nullptr;
-  set_route_param = nullptr;
 }
 
 LoadedData LOADED_SO{};
@@ -148,13 +145,13 @@ void create_routes(http::Router &router) {
     std::cout << "found: " << path << '\n';
     router.page(path.c_str(), [filename, path](http::Request r) {
       html::ServerRenderingContext ctx;
-      if (LOADED_SO.instanciate_context) {
-        ctx.user_data = LOADED_SO.instanciate_context();
-      }
       ctx.page_params = std::move(r.params);
       ctx.current_page = path;
       if (auto it = r.headers.find("Cookie"); it != r.headers.end()) {
         ctx.set_cookies(it->second);
+      }
+      if (LOADED_SO.instanciate_context) {
+        ctx.user_data = LOADED_SO.instanciate_context(ctx);
       }
       std::ifstream f(filename);
       std::ostringstream oss;
