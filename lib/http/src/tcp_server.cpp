@@ -1,6 +1,7 @@
 #include <connection.hpp>
 #include <tcp_server.hpp>
 
+#include "ws.hpp"
 #include <arpa/inet.h>
 #include <iostream>
 #include <netinet/in.h>
@@ -10,17 +11,11 @@
 #include <sys/socket.h>
 #include <thread>
 #include <unistd.h>
-#include "ws.hpp"
 
-struct ServerCommand {
-  std::string cmd;
-  void parse();
-};
+void http::ServerCommand::parse() {}
 
-void ServerCommand::parse() {}
-
-static bool execute_server_command(http::TcpServer &serv,
-                                   ServerCommand const &cmd) {
+bool http::execute_server_command(http::TcpServer &serv,
+                                  http::ServerCommand const &cmd) {
   (void)serv;
   if (cmd.cmd == "/stop") {
     return true;
@@ -32,7 +27,8 @@ static bool execute_server_command(http::TcpServer &serv,
     return false;
   }
 
-  std::vector<u8> OUT{(u8 *)cmd.cmd.data(), (u8 *)cmd.cmd.data() + cmd.cmd.size()};
+  std::vector<u8> OUT{(u8 *)cmd.cmd.data(),
+                      (u8 *)cmd.cmd.data() + cmd.cmd.size()};
   auto out = write_ws(OUT);
 
   serv.broadcast_message(out);

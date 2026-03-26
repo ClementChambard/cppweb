@@ -41,7 +41,7 @@ run)
   if [[ -z "$2" ]]; then
     .cppweb/bin/server
   else
-    if [[ "$2" -eq "-p" ]]; then
+    if [[ "$2" == "-p" ]]; then
       echo "PORT = $3"
       export PORT="$3"
       .cppweb/bin/server

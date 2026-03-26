@@ -50,4 +50,9 @@ private:
   }
 };
 
+#define __DECLARE_API_CONCAT(a, b) a##b
+#define __ENDPOINT_NAME(b) __DECLARE_API_CONCAT(api_endpoint_of_this_file, b)
+
+#define DECLARE_API static auto __ENDPOINT_NAME(__LINE__) = api::Endpoint
+
 } // namespace api

@@ -8,9 +8,9 @@ function apply_changed_res(res) {
 }
 
 function apply_changed_pages(res) {
-  if (res.includes(window.location.pathname)) {
-    window.location.reload();
-  }
+  // if (res.includes(window.location.pathname)) {
+  window.location.reload();
+  // }
 }
 
 function on_message(e) {

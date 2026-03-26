@@ -13,6 +13,11 @@
 
 namespace http {
 
+struct ServerCommand {
+  std::string cmd;
+  void parse();
+};
+
 struct TcpServer {
   TcpServer(char const *ip_address, i32 port, fp_connection *fn);
   ~TcpServer();
@@ -36,17 +41,22 @@ void http_client_thread(Connection *);
 void ws_client_thread(Connection *);
 
 struct HttpServer : TcpServer {
-  HttpServer(char const *ip_address, i32 port) : TcpServer(ip_address, port, http_client_thread) {}
+  HttpServer(char const *ip_address, i32 port)
+      : TcpServer(ip_address, port, http_client_thread) {}
 
   Router &router() { return m_router; }
   Router m_router;
 };
 
 struct WsServer : TcpServer {
-  WsServer(char const *ip_address, i32 port) : TcpServer(ip_address, port, ws_client_thread) {}
+  WsServer(char const *ip_address, i32 port)
+      : TcpServer(ip_address, port, ws_client_thread) {}
 
   Router &router() { return m_router; }
   Router m_router;
 };
+
+bool execute_server_command(http::TcpServer &serv,
+                            http::ServerCommand const &cmd);
 
 } // namespace http

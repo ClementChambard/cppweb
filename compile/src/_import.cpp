@@ -4,6 +4,7 @@
 #include <iostream>
 
 extern components::Map *REGISTERED_COMPONENTS;
+extern components::ServerMap *REGISTERED_SERVER_COMPONENTS;
 
 MapH::MapH(std::string const &so_name) {
   // TODO: check actual location
@@ -35,11 +36,21 @@ MapH::MapH(std::string const &so_name) {
 
   get_registered_components = reinterpret_cast<pfn_t *>(pfn);
 
+  using grsc_t = components::ServerMap *();
+  pfn = dlsym(so, "get_registered_server_components");
+  auto get_registered_server_components = reinterpret_cast<grsc_t *>(pfn);
+
   REGISTERED_COMPONENTS = get_registered_components();
+  REGISTERED_SERVER_COMPONENTS = get_registered_server_components();
   map = REGISTERED_COMPONENTS;
+  server_map = REGISTERED_SERVER_COMPONENTS;
 }
 
 MapH::~MapH() {
+  using delete_api_t = void(void);
+  auto delete_api = reinterpret_cast<delete_api_t *>(dlsym(so, "delete_api"));
+  delete_api();
   delete map;
+  delete server_map;
   dlclose(so);
 }

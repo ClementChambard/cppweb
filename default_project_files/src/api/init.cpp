@@ -1,6 +1,6 @@
 #include <api/api.hpp>
 
-api::Api *API;
+static api::Api *API;
 
 extern "C" api::Api *get_api() {
   if (API == nullptr)
@@ -9,3 +9,8 @@ extern "C" api::Api *get_api() {
 }
 
 extern "C" void init_api() {}
+
+extern "C" void delete_api() {
+  delete API;
+  API = nullptr;
+}

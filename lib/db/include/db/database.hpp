@@ -4,9 +4,9 @@
 #include <functional>
 #include <iostream>
 #include <map>
+#include <sqlite3.h>
 #include <string>
 #include <vector>
-#include <sqlite3.h>
 
 using Rows = std::vector<std::map<std::string, std::string>>;
 
@@ -32,6 +32,8 @@ struct QueryExecutor {
     executor->m_output.emplace_back();
     std::map<std::string, std::string> &out = executor->m_output.back();
     for (int i = 0; i < argc; i++) {
+      if (argv[i] == nullptr)
+        argv[i] = const_cast<char *>("<NULL>");
       out.insert(
           std::make_pair<std::string, std::string>(azColName[i], argv[i]));
     }
@@ -52,7 +54,7 @@ struct QueryExecutor {
     int rc =
         sqlite3_exec(m_db, m_query.c_str(), query_callback, this, &zErrMsg);
     if (rc != SQLITE_OK) {
-      std::cerr <<  "SQL error: " << zErrMsg << '\n';
+      std::cerr << "SQL error: " << zErrMsg << '\n';
       sqlite3_free(zErrMsg);
     }
     if (m_has_then)
@@ -62,7 +64,8 @@ struct QueryExecutor {
 
 struct Database {
   Database(std::string const &file_name) {
-    if (file_name != "") init(file_name);
+    if (file_name != "")
+      init(file_name);
   }
 
   void init(std::string const &file_name) {
@@ -73,16 +76,19 @@ struct Database {
     }
   }
 
-  // CreateTable create_table(std::string const &name) { return CreateTable{this, name}; }
-  // InsertInto insert_into(std::string const &name) { return InsertInto{this, name}; }
-  // DropTable drop_table(std::string const &name) { return DropTable{this, name}; }
+  void cleanup() { sqlite3_close(m_db); }
+
+  // CreateTable create_table(std::string const &name) { return
+  // CreateTable{this, name}; } InsertInto insert_into(std::string const &name)
+  // { return InsertInto{this, name}; } DropTable drop_table(std::string const
+  // &name) { return DropTable{this, name}; }
 
   QueryExecutor exec(std::string const &query) {
     std::cout << "Executing query: " << query << '\n';
     return QueryExecutor{m_db, query};
   }
 
-  ~Database() { sqlite3_close(m_db); }
+  ~Database() { cleanup(); }
 
 private:
   sqlite3 *m_db;

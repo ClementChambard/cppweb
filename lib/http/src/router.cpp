@@ -186,4 +186,13 @@ Response Router::process_request(Request &r) const {
   return Response::not_found();
 }
 
+void Router::clean() {
+  get_routes.clear();
+  post_routes.clear();
+  patch_routes.clear();
+  put_routes.clear();
+  delete_routes.clear();
+  forwarded.clear();
+}
+
 } // namespace http

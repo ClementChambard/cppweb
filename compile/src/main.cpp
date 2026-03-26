@@ -1,6 +1,7 @@
 #include "args.hpp"
 #include "components.hpp"
 #include "config.hpp"
+#include "hot_reload_socket.hpp"
 #include "html/parse.hpp"
 #include "page.hpp"
 #include "sys/logger.hpp"
@@ -33,8 +34,11 @@ void run_config() {
   }
 
   if (CONFIG.dev) {
+    hot_reload_socket_create();
+    do_hot_reload();
     ws_open_connection();
     start_watcher_loop();
+    hot_reload_socket_close();
   }
 }
 

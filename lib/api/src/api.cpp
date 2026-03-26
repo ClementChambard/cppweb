@@ -4,7 +4,6 @@
 #include "route.hpp"
 #include <api.hpp>
 #include <cassert>
-#include <iostream>
 
 namespace api {
 
@@ -46,7 +45,8 @@ std::vector<std::string> path_get(std::string route,
     last.resize(pos);
   }
 
-  if (last.size() == 0 && out.size() == 1) out.clear();
+  if (last.size() == 0 && out.size() == 1)
+    out.clear();
 
   if (query_params && query != "") {
     http::url_params(query, *query_params);
@@ -66,7 +66,8 @@ http::Response Api::dispatch_request(std::string route,
   std::vector<std::string> route_path = path_get(route, &ctx.query_params);
 
   for (auto const &r : routes) {
-    if (req.kind != r.method) continue;
+    if (req.kind != r.method)
+      continue;
     if (path_matches(r.path, route_path, &ctx.route_params)) {
       execute_handler_chain(r.handlers, ctx);
       found = true;
@@ -86,7 +87,8 @@ std::function<http::Response(http::Request)> Api::get_func() {
     std::string route = r.endpoint;
     assert(route.starts_with(base_url));
     route = route.substr(base_url.size());
-    if (!route.starts_with('/')) route.insert(0, "/");
+    if (!route.starts_with('/'))
+      route.insert(0, "/");
     return dispatch_request(route, r);
   };
 }

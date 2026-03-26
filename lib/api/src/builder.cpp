@@ -23,7 +23,8 @@ RoutePath parse_path(std::string const &path) {
       }
       out.push_back({.value = sub, .is_param = arg});
     }
-    if (end_pos == std::string::npos) break;
+    if (end_pos == std::string::npos)
+      break;
     pos = end_pos + 1;
   }
 

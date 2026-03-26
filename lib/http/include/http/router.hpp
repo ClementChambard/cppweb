@@ -64,6 +64,8 @@ struct Router {
     return *this;
   }
 
+  void clean();
+
   std::vector<Route> get_routes;
   std::vector<Route> post_routes;
   std::vector<Route> patch_routes;
