@@ -1,6 +1,7 @@
 #pragma once
 
 #include "html.hpp"
+#include "server_rendering_context.hpp"
 #include <defines.hpp>
 #include <map>
 #include <optional>
@@ -105,7 +106,8 @@ public:
 class ServerComponent : public Component {
 public:
   html::Fragment build_html(Params &&) const override;
-  virtual std::string exec(std::map<std::string, std::string> params,
+  virtual std::string exec(html::ServerRenderingContext &ctx,
+                           std::map<std::string, std::string> params,
                            std::string inner_html) const = 0;
 
   static ServerComponent const *find(std::string const &name);

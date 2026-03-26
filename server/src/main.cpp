@@ -1,4 +1,5 @@
 #include "html/components.hpp"
+#include "html/server_rendering_context.hpp"
 #include <api/api.hpp>
 #include <arpa/inet.h>
 #include <cstdio>
@@ -25,10 +26,11 @@ struct Config {
   std::string page_build_dir = "";
 };
 
-template <typename pfn_t> pfn_t *get_func(void *so, std::string const &name) {
+template <typename pfn_t>
+pfn_t *get_func(void *so, std::string const &name, bool can_be_empty = false) {
   void *pfn = dlsym(so, name.c_str());
 
-  if (pfn == nullptr) {
+  if (pfn == nullptr && !can_be_empty) {
     std::cerr << "Error accessing function " << name << " - " << dlerror()
               << '\n';
     std::exit(EXIT_FAILURE);
@@ -51,6 +53,8 @@ struct LoadedData {
   using fn_get_registered_server_components_t = components::ServerMap *();
   using fn_get_registered_components_t = components::Map *();
   using fn_set_route_param_t = void(std::string, std::string);
+  using fn_instanciate_context_t = void *();
+  using fn_cleanup_context_t = void(void *);
 
   std::string so_file;
   void *so = nullptr;
@@ -62,6 +66,8 @@ struct LoadedData {
       nullptr;
   fn_get_registered_components_t *get_registered_components = nullptr;
   fn_set_route_param_t *set_route_param = nullptr;
+  fn_instanciate_context_t *instanciate_context = nullptr;
+  fn_cleanup_context_t *cleanup_context = nullptr;
 
   void load(std::string const &file);
   void hot_reload();
@@ -100,6 +106,10 @@ void LoadedData::load(std::string const &file) {
       get_func<fn_get_registered_server_components_t>(
           so, "get_registered_server_components");
   set_route_param = get_func<fn_set_route_param_t>(so, "set_route_param");
+  instanciate_context =
+      get_func<fn_instanciate_context_t>(so, "instanciate_context", true);
+  if (instanciate_context)
+    cleanup_context = get_func<fn_cleanup_context_t>(so, "cleanup_context");
 
   init_api();
 
@@ -119,6 +129,8 @@ void LoadedData::close() {
   init_api = nullptr;
   delete_api = nullptr;
   get_registered_server_components = nullptr;
+  instanciate_context = nullptr;
+  cleanup_context = nullptr;
   set_route_param = nullptr;
 }
 
@@ -135,13 +147,23 @@ void create_routes(http::Router &router) {
     std::string path = filename.filename().string();
     std::cout << "found: " << path << '\n';
     router.page(path.c_str(), [filename, path](http::Request r) {
-      for (auto &[k, v] : r.params)
-        LOADED_SO.set_route_param(k, v);
-      LOADED_SO.set_route_param("ROUTE", path);
+      html::ServerRenderingContext ctx;
+      if (LOADED_SO.instanciate_context) {
+        ctx.user_data = LOADED_SO.instanciate_context();
+      }
+      ctx.page_params = std::move(r.params);
+      ctx.current_page = path;
+      if (auto it = r.headers.find("Cookie"); it != r.headers.end()) {
+        ctx.set_cookies(it->second);
+      }
       std::ifstream f(filename);
       std::ostringstream oss;
       oss << f.rdbuf();
-      std::string body = html::exec_compiled_format(oss.str());
+      std::string body = html::exec_compiled_format(ctx, oss.str());
+      ctx.get_special_html(body);
+      if (ctx.user_data != nullptr) {
+        LOADED_SO.cleanup_context(ctx.user_data);
+      }
       return http::Response::Builder()
           .body("text/html", body)
           .code(200)

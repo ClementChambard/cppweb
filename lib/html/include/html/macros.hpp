@@ -21,7 +21,8 @@
       register_server_component(#name, this);                                  \
     }                                                                          \
     Interface *get_interface() const override;                                 \
-    std::string exec(std::map<std::string, std::string> params,                \
+    std::string exec(html::ServerRenderingContext &ctx,                        \
+                     std::map<std::string, std::string> params,                \
                      std::string inner_html) const override;                   \
   };                                                                           \
   static Interface::Prop _s_##name##_props[] = {
@@ -40,8 +41,9 @@
 #define DEF_BUILDFN(name, params)                                              \
   html::Fragment name::build_html(Params &&params) const
 
-#define DEF_SERVER_EXEC(name, params, inner_html)                              \
-  std::string name::exec(std::map<std::string, std::string> params,            \
+#define DEF_SERVER_EXEC(name, ctx, params, inner_html)                         \
+  std::string name::exec(html::ServerRenderingContext &ctx,                    \
+                         std::map<std::string, std::string> params,            \
                          std::string inner_html) const
 
 #define END_COMPONENT(name)                                                    \
