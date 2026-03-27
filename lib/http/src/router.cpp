@@ -59,30 +59,30 @@ std::vector<std::string_view> split_request_route(std::string const &r) {
   return out;
 }
 
-bool check_match(Request &r, Route const &route, UrlParams &params) {
+bool check_match(Request &r, Route const &route, UrlParams &route_params) {
   auto request_route = split_request_route(r.endpoint);
   if (request_route.size() != route.route_parts.size())
     return false;
-  std::map<std::string, std::string> tmp_params;
   for (u32 i = 0; i < request_route.size(); i++) {
     if (route.route_parts[i].is_param) {
-      tmp_params.insert(std::make_pair(route.route_parts[i].value,
-                                       url_decode(request_route[i])));
+      route_params.insert(std::make_pair(route.route_parts[i].value,
+                                         url_decode(request_route[i])));
     } else if (route.route_parts[i].value != request_route[i]) {
       return false;
     }
   }
-  params.insert(tmp_params.begin(), tmp_params.end());
   return true;
 }
 
 bool Route::exec_if_match(Request &r, Response &res) const {
-  UrlParams decoded_params;
-  if (!check_match(r, *this, decoded_params))
+  UrlParams route_params;
+  if (!check_match(r, *this, route_params))
     return false;
-  for (auto [k, v] : decoded_params) {
+
+  for (auto [k, v] : route_params) {
     r.params[k] = v;
   }
+
   res = this->f(r);
   return true;
 }
@@ -148,7 +148,7 @@ Response Router::process_request(Request &r) const {
   }
 
   std::string_view endpoint = r.endpoint;
-  url_params_from_url(endpoint, r.params);
+  url_params_from_url(endpoint, r.query);
   if (endpoint.size() != 1 && endpoint.ends_with('/'))
     endpoint = endpoint.substr(0, endpoint.size() - 1);
   r.endpoint = endpoint;

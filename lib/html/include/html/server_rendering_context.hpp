@@ -10,6 +10,7 @@ namespace html {
 struct ServerRenderingContext {
   std::string current_page;
   std::unordered_map<std::string, std::string> page_params;
+  std::unordered_map<std::string, std::string> query_params;
 
   void redirect(std::string const &loc) {
     m_redirect = true;

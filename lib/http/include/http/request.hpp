@@ -1,5 +1,6 @@
 #pragma once
 
+#include "url_params.hpp"
 #include <defines.hpp>
 #include <json/value.h>
 #include <optional>
@@ -16,13 +17,13 @@ struct JsonBody : Json::Value {
 };
 
 enum class Method {
-    GET,
-    POST,
-    PATCH,
-    PUT,
-    DELETE,
-    // TODO:
-    ERROR
+  GET,
+  POST,
+  PATCH,
+  PUT,
+  DELETE,
+  // TODO:
+  ERROR
 };
 
 struct Request {
@@ -33,6 +34,7 @@ struct Request {
   std::unordered_map<std::string, std::string> headers;
   std::string body;
   std::unordered_map<std::string, std::string> params;
+  UrlParams query;
 
   void body_as_params();
   std::optional<JsonBody> body_as_json();
@@ -46,9 +48,8 @@ struct Request {
 
   std::string string_param(char const *name, char const *default_value = "");
   i32 int_param(char const *name, i32 default_value = 0);
-  // TODO: more kinds of params
 };
 
-char const * request_kind_to_string(Request::Kind k);
+char const *request_kind_to_string(Request::Kind k);
 
 } // namespace http

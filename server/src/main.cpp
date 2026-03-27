@@ -146,6 +146,7 @@ void create_routes(http::Router &router) {
     router.page(path.c_str(), [filename, path](http::Request r) {
       html::ServerRenderingContext ctx;
       ctx.page_params = std::move(r.params);
+      ctx.query_params = std::move(r.query);
       ctx.current_page = path;
       if (auto it = r.headers.find("Cookie"); it != r.headers.end()) {
         ctx.set_cookies(it->second);
