@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE "Debug")
 
-add_compile_options(-Wall -Wextra -Werror -fno-gnu-unique)
+add_compile_options(-Wall -Wextra -Werror)
 
 project(website VERSION 1.0)
 
@@ -16,8 +16,8 @@ add_library(website SHARED ${SRCS} ${HEADERS})
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   target_compile_definitions(website PRIVATE -DNS_RELEASE=0 -D_DEBUG)
-  target_compile_options(website PRIVATE -fsanitize=address)
-  target_link_options(website PRIVATE -fsanitize=address)
+  target_compile_options(website PRIVATE -fsanitize=address -fno-gnu-unique)
+  target_link_options(website PRIVATE -fsanitize=address -fno-gnu-unique)
 else()
   target_compile_definitions(website PRIVATE -DNS_RELEASE=1)
 endif()

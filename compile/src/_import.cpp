@@ -16,7 +16,7 @@ MapH::MapH(std::string const &so_name) {
 
   pfn_t *get_registered_components;
 
-  so = dlopen(libfullname.c_str(), RTLD_LAZY);
+  so = dlopen(libfullname.c_str(), RTLD_LAZY | RTLD_LOCAL);
 
   if (so == nullptr) {
     std::cerr << "Error loading library " << libfullname << " - " << dlerror()
@@ -50,7 +50,5 @@ MapH::~MapH() {
   using delete_api_t = void(void);
   auto delete_api = reinterpret_cast<delete_api_t *>(dlsym(so, "delete_api"));
   delete_api();
-  delete map;
-  delete server_map;
   dlclose(so);
 }

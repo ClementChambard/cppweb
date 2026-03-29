@@ -77,6 +77,7 @@ update)
   cp_dir_echo $CPPWEB_DIR/lib/api/include/api .cppweb/include
   cp_dir_echo $CPPWEB_DIR/lib/html/include/html .cppweb/include
   cp_dir_echo $CPPWEB_DIR/lib/db/include/db .cppweb/include
+  $0 build
   ;;
 build)
   $0 compile

@@ -118,8 +118,9 @@ void LoadedData::load(std::string const &file) {
 
 void LoadedData::close() {
   delete_api();
-  delete REGISTERED_SERVER_COMPONENTS;
-  delete REGISTERED_COMPONENTS;
+  REGISTERED_COMPONENTS = nullptr;
+  REGISTERED_SERVER_COMPONENTS = nullptr;
+  API = nullptr;
   dlclose(so);
   so_file = "";
   so = nullptr;
@@ -142,7 +143,6 @@ void create_routes(http::Router &router) {
        std::filesystem::recursive_directory_iterator(CONFIG.page_build_dir)) {
     std::filesystem::path filename = p.path();
     std::string path = filename.filename().string();
-    std::cout << "found: " << path << '\n';
     router.page(path.c_str(), [filename, path](http::Request r) {
       html::ServerRenderingContext ctx;
       ctx.page_params = std::move(r.params);

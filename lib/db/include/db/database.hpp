@@ -84,7 +84,7 @@ struct Database {
   // &name) { return DropTable{this, name}; }
 
   QueryExecutor exec(std::string const &query) {
-    std::cout << "Executing query: " << query << '\n';
+    // std::cout << "Executing query: " << query << '\n';
     return QueryExecutor{m_db, query};
   }
 

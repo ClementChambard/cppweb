@@ -207,15 +207,18 @@ html::Fragment ServerComponent::build_html(Params &&params) const {
 
 } // namespace components
 
-static bool MAP_INITIALIZED = false;
+static bool map_initialized() {
+  return REGISTERED_COMPONENTS != nullptr &&
+         REGISTERED_SERVER_COMPONENTS != nullptr;
+}
+
 void initialize_maps() {
   REGISTERED_COMPONENTS = new components::Map{};
   REGISTERED_SERVER_COMPONENTS = new components::ServerMap{};
-  MAP_INITIALIZED = true;
 }
 
 void register_component(char const *name, components::Component *c) {
-  if (!MAP_INITIALIZED) {
+  if (!map_initialized()) {
     initialize_maps();
   }
   REGISTERED_COMPONENTS->insert(std::make_pair(name, c));
@@ -223,7 +226,7 @@ void register_component(char const *name, components::Component *c) {
 
 void register_server_component(char const *name,
                                components::ServerComponent *c) {
-  if (!MAP_INITIALIZED) {
+  if (!map_initialized()) {
     initialize_maps();
   }
   REGISTERED_SERVER_COMPONENTS->insert(std::make_pair(name, c));

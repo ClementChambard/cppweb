@@ -3,15 +3,14 @@
 #include "request.hpp"
 #include "response.hpp"
 #include "tcp_server.hpp"
+#include "ws.hpp"
 #include <algorithm>
 #include <arpa/inet.h>
-#include <iostream>
 #include <string>
 #include <sys/socket.h>
 #include <thread>
 #include <unistd.h>
 #include <vector>
-#include "ws.hpp"
 
 #include <sys/sha1.hpp>
 
@@ -47,8 +46,6 @@ static bool process_message(Connection &self, std::vector<u8> const &message) {
   }
 
   std::vector<u8> DATA = get_ws(*h);
-
-  std::cout << std::string((char *)DATA.data(), DATA.size()) << "\n";
 
   std::vector<u8> OUT{(u8 *)"ok", (u8 *)"ok" + 2};
 
@@ -98,8 +95,6 @@ void ws_client_thread(Connection *self) {
                                                 (u8 *)buffer + bytes_received}))
       break;
   }
-
-  std::cout << "CLOSE!!!\n";
 
   close(self->m_socket);
 
