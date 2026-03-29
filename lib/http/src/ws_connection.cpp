@@ -30,10 +30,10 @@ static void process_request(Connection &self, Request &r) {
                       .header("Sec-WebSocket-Accept", key.c_str())
                       .build(true);
 
-  std::string server_message = std::string(response);
+  std::vector<u8> server_message = std::vector<u8>(response);
 
   bytes_sent =
-      write(self.m_socket, server_message.c_str(), server_message.size());
+      write(self.m_socket, server_message.data(), server_message.size());
 
   (void)bytes_sent;
 }

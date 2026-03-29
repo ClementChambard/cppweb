@@ -3,10 +3,10 @@
 #include <algorithm>
 #include <arpa/inet.h>
 #include <request.hpp>
-#include <tcp_server.hpp>
 #include <string>
 #include <sys/logger.hpp>
 #include <sys/socket.h>
+#include <tcp_server.hpp>
 #include <thread>
 #include <unistd.h>
 
@@ -15,11 +15,12 @@ namespace http {
 static void process_request(Connection &self, Request &r) {
   i64 bytes_sent;
 
-  auto response = reinterpret_cast<HttpServer*>(self.m_server)->m_router.process_request(r);
-  std::string server_message = std::string(response);
+  auto response = reinterpret_cast<HttpServer *>(self.m_server)
+                      ->m_router.process_request(r);
+  std::vector<u8> server_message = std::vector<u8>(response);
 
   bytes_sent =
-      write(self.m_socket, server_message.c_str(), server_message.size());
+      write(self.m_socket, server_message.data(), server_message.size());
 
   if (u64(bytes_sent) == server_message.size()) {
     sys::info(" ==> %s", response.first_line().c_str());
@@ -66,7 +67,7 @@ void http_client_thread(Connection *self) {
     }
 
     buffer[bytes_received] = 0;
-    // TODO: maybe not enough bytes in buffer when parsing request ? 
+    // TODO: maybe not enough bytes in buffer when parsing request ?
     // => should read more.
 
     Request r = Request::parse(buffer);

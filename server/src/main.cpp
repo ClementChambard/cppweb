@@ -143,6 +143,7 @@ void create_routes(http::Router &router) {
        std::filesystem::recursive_directory_iterator(CONFIG.page_build_dir)) {
     std::filesystem::path filename = p.path();
     std::string path = filename.filename().string();
+    std::cout << "Register: " << path << '\n';
     router.page(path.c_str(), [filename, path](http::Request r) {
       html::ServerRenderingContext ctx;
       ctx.page_params = std::move(r.params);
@@ -157,13 +158,13 @@ void create_routes(http::Router &router) {
       std::ifstream f(filename);
       std::ostringstream oss;
       oss << f.rdbuf();
-      std::string body = html::exec_compiled_format(ctx, oss.str());
-      ctx.get_special_html(body);
+      std::string build_body = html::exec_compiled_format(ctx, oss.str());
+      std::vector<u8> body = ctx.get_body(build_body);
       if (ctx.user_data != nullptr) {
         LOADED_SO.cleanup_context(ctx.user_data);
       }
       return http::Response::Builder()
-          .body("text/html", body)
+          .body(ctx.response_type, body)
           .code(200)
           .build();
     });

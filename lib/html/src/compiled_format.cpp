@@ -118,7 +118,9 @@ std::string exec_compiled_format(ServerRenderingContext &ctx,
   return out;
 }
 
-void ServerRenderingContext::get_special_html(std::string &s) {
+std::vector<u8> ServerRenderingContext::get_body(std::string &s) {
+  if (m_is_custom_response)
+    return m_custom_response;
   static auto pre = "<html><head><title>Error</title></head><body>";
   static auto post = "</body></html>";
   if (m_error) {
@@ -128,6 +130,7 @@ void ServerRenderingContext::get_special_html(std::string &s) {
     s = pre + ("<script>window.location='" + m_param_str + "';</script>") +
         post;
   }
+  return {(u8 *)s.data(), (u8 *)s.data() + s.size()};
 }
 
 std::optional<std::string>
@@ -164,6 +167,13 @@ void ServerRenderingContext::set_cookies(std::string_view cursor) {
       break;
     cursor = cursor.substr(pos + 1);
   }
+}
+
+void ServerRenderingContext::custom_response(std::string const &response_type,
+                                             u8 const *data, u64 size) {
+  this->response_type = response_type;
+  m_is_custom_response = true;
+  m_custom_response.insert(m_custom_response.end(), data, data + size);
 }
 
 } // namespace html

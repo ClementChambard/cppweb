@@ -19,7 +19,7 @@ struct SetCookie {
 struct Response {
   u32 code;
   std::unordered_map<std::string, std::string> headers;
-  std::string body;
+  std::vector<u8> body;
 
   static Response ok();
   static Response created();
@@ -28,7 +28,7 @@ struct Response {
   static Response unauthorized();
 
   std::string first_line();
-  operator std::string();
+  operator std::vector<u8>();
 
   struct Builder;
 };
@@ -39,7 +39,15 @@ struct Response::Builder {
     return *this;
   }
   Builder &body(std::string const &type, std::string const &body) {
-    m_obj.body = body;
+    m_obj.body.insert(m_obj.body.begin(), (u8 *)body.data(),
+                      (u8 *)body.data() + body.size());
+    m_has_body = true;
+    return header("Content-Type", type.c_str())
+        .header("Content-Length", std::to_string(body.size()).c_str());
+  }
+  Builder &body(std::string const &type, std::vector<u8> const &body) {
+    m_obj.body.insert(m_obj.body.begin(), (u8 *)body.data(),
+                      (u8 *)body.data() + body.size());
     m_has_body = true;
     return header("Content-Type", type.c_str())
         .header("Content-Length", std::to_string(body.size()).c_str());

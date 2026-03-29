@@ -33,14 +33,17 @@ std::string Response::first_line() {
   return oss.str();
 }
 
-Response::operator std::string() {
+Response::operator std::vector<u8>() {
   std::ostringstream oss;
   oss << first_line() << "\r\n";
   for (auto [key, value] : headers) {
     oss << key << ": " << value << "\r\n";
   }
-  oss << "\r\n" << body;
-  return oss.str();
+  oss << "\r\n";
+  std::vector<u8> res = body;
+  auto s = oss.str();
+  res.insert(res.begin(), (u8 *)s.data(), (u8 *)s.data() + s.size());
+  return res;
 }
 
 Response error_response(u32 code) {
