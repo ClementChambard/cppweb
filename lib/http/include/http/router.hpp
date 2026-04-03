@@ -19,6 +19,7 @@ struct Route {
   struct PathPart {
     std::string value;
     bool is_param;
+    bool is_catchall;
   };
 
   std::vector<PathPart> route_parts;

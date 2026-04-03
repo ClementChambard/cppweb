@@ -25,8 +25,13 @@ Route Route::from_mangled(char const *mangled_endpoint, EndpointFunc fn) {
   while (cursor != ".html") {
     u32 count = 0;
     bool p = false;
+    bool a = false;
     if (cursor[0] == 'p') {
       p = true;
+      cursor = cursor.substr(1);
+    }
+    if (cursor[0] == 'a') {
+      a = true;
       cursor = cursor.substr(1);
     }
     while (cursor[0] >= '0' && cursor[0] <= '9') {
@@ -34,7 +39,7 @@ Route Route::from_mangled(char const *mangled_endpoint, EndpointFunc fn) {
       count += cursor[0] - '0';
       cursor = cursor.substr(1);
     }
-    r.route_parts.emplace_back(std::string(cursor.substr(0, count)), p);
+    r.route_parts.emplace_back(std::string(cursor.substr(0, count)), p, a);
     cursor = cursor.substr(count);
   }
 
@@ -61,12 +66,31 @@ std::vector<std::string_view> split_request_route(std::string const &r) {
 
 bool check_match(Request &r, Route const &route, UrlParams &route_params) {
   auto request_route = split_request_route(r.endpoint);
-  if (request_route.size() != route.route_parts.size())
+  // TODO: better catchall handling
+  if (request_route.size() != route.route_parts.size() &&
+      (route.route_parts.size() == 0 || !route.route_parts.back().is_catchall))
     return false;
-  for (u32 i = 0; i < request_route.size(); i++) {
+  for (u32 i = 0; i < route.route_parts.size(); i++) {
+    if (i >= request_route.size()) {
+      if (route.route_parts[i].is_catchall) {
+        route_params.insert(std::make_pair(route.route_parts[i].value, "/"));
+        break;
+      }
+      return false;
+    }
     if (route.route_parts[i].is_param) {
       route_params.insert(std::make_pair(route.route_parts[i].value,
                                          url_decode(request_route[i])));
+    } else if (route.route_parts[i].is_catchall) {
+      std::string const &param_name = route.route_parts[i].value;
+      std::string out;
+      while (i < request_route.size()) {
+        out += '/';
+        out += url_decode(request_route[i]);
+        i++;
+      }
+      route_params.insert(std::make_pair(param_name, out));
+      break;
     } else if (route.route_parts[i].value != request_route[i]) {
       return false;
     }

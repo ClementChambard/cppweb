@@ -100,7 +100,10 @@ void find_pages_it(std::string dir_name, std::string cur_path,
   for (auto const &d : directories_to_visit) {
     auto name = d.filename().string();
     std::string fname = name;
-    if (fname.starts_with('[') && fname.ends_with(']')) {
+    if (fname.starts_with("[...") && fname.ends_with(']')) {
+      fname = "a" + std::to_string(fname.size() - 5) +
+              fname.substr(4, fname.size() - 5);
+    } else if (fname.starts_with('[') && fname.ends_with(']')) {
       fname = "p" + std::to_string(fname.size() - 2) +
               fname.substr(1, fname.size() - 2);
     } else if (fname.starts_with('(') && fname.ends_with(')')) {
