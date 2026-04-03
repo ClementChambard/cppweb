@@ -1,10 +1,10 @@
 #pragma once
 
 #include "hot_reload_socket.hpp"
+#include "sys/logger.hpp"
 #include "ws_connection.hpp"
 #include <fswatch/recursive_file_watcher.hpp>
 #include <fswatch/single_file_watcher.hpp>
-#include <iostream>
 #include <sys/inotify.h>
 #include <sys/subprocess.hpp>
 #include <thread>
@@ -18,7 +18,7 @@ struct CppWatcher : RecursiveFileWatcher {
     auto fn = get_filename(e);
     if (fn.ends_with(".cpp") || fn.ends_with(".hpp") || fn.ends_with(".c") ||
         fn.ends_with(".h")) {
-      std::cout << fn << '\n';
+      sys::log_extra("COMPILE", "%s", fn.c_str());
       char const *args_[] = {"cppweb", "compile"};
       sys::subprocess_run(args_);
     }

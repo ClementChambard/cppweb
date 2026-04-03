@@ -1,11 +1,11 @@
-#include <request.hpp>
-#include <url_params.hpp>
-#include <sys/logger.hpp>
 #include <json/reader.h>
 #include <optional>
+#include <request.hpp>
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <sys/logger.hpp>
+#include <url_params.hpp>
 
 namespace http {
 
@@ -31,15 +31,18 @@ void Request::body_as_params() {
 }
 
 bool JsonBody::get_bool(char const *name, bool default_value) {
-  if (isMember(name)) return (*this)[name].asBool();
+  if (isMember(name))
+    return (*this)[name].asBool();
   return default_value;
 }
 i32 JsonBody::get_int(char const *name, i32 default_value) {
-  if (isMember(name)) return (*this)[name].asInt();
+  if (isMember(name))
+    return (*this)[name].asInt();
   return default_value;
 }
 std::string JsonBody::get_string(char const *name, char const *default_value) {
-  if (isMember(name)) return (*this)[name].asString();
+  if (isMember(name))
+    return (*this)[name].asString();
   return default_value;
 }
 
@@ -48,7 +51,8 @@ std::optional<JsonBody> Request::body_as_json() {
 
   JsonBody out;
   bool ok = r.parse(body, out);
-  if (ok) return out;
+  if (ok)
+    return out;
   return std::nullopt;
 }
 
@@ -154,7 +158,7 @@ Request Request::parse(std::string_view http_request) {
   return r;
 }
 
-char const * request_kind_to_string(Request::Kind k) {
+char const *request_kind_to_string(Request::Kind k) {
   if (k == Request::Kind::GET)
     return "GET";
   if (k == Request::Kind::POST)

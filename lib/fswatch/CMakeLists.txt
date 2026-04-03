@@ -15,3 +15,4 @@ endif()
 
 target_include_directories(fswatch PRIVATE include/fswatch)
 target_include_directories(fswatch INTERFACE include)
+target_link_libraries(fswatch PRIVATE system)

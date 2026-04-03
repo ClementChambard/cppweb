@@ -5,6 +5,8 @@ file(GLOB_RECURSE HEADERS src/*.hpp src/*.h)
 
 add_library(system ${SRCS} ${HEADERS})
 
+set_property(TARGET system PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   target_compile_definitions(system PRIVATE -DNS_RELEASE=0 -D_DEBUG)
   target_compile_options(system PRIVATE -fsanitize=address -fno-gnu-unique)

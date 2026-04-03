@@ -1,0 +1,91 @@
+#!/bin/env bash
+
+cp_echo() {
+  echo "copying $1 to $2"
+  cp $1 $2
+}
+
+cp_dir_echo() {
+  echo "copying directory $1 to $2"
+  cp $1 $2 -r
+}
+
+case "$1" in
+create)
+  if [[ -z "${CPPWEB_DIR}" ]]; then
+    echo "Can't find cppweb. Set variable CPPWEB_DIR to the location of cppweb."
+    exit 1
+  fi
+  APP_NAME=$2
+  cd $CPPWEB_DIR
+  CPPWEB_DIR_ABSOLUTE=$(pwd)
+  cd -
+  mkdir $APP_NAME
+  cd $APP_NAME
+  cp -r $CPPWEB_DIR_ABSOLUTE/default_project_files/* .
+  CONF=$(cat cppweb.conf | sed "s+####REPLACE_DIR####+$CPPWEB_DIR_ABSOLUTE+g")
+  echo $CONF >cppweb.conf
+  mkdir .cppweb
+  $0 update
+  mkdir build
+  cd build
+  cmake .. -GNinja
+  ninja
+  cd ..
+  ;;
+run)
+  cd build
+  cmake ..
+  ninja
+  cd ..
+  if [[ -z "$2" ]]; then
+    .cppweb/bin/server
+  else
+    if [[ "$2" == "-p" ]]; then
+      echo "PORT = $3"
+      export PORT="$3"
+      .cppweb/bin/server
+    else
+      echo "running in mode $2"
+      .cppweb/bin/server $2
+    fi
+  fi
+  ;;
+update)
+  CPPWEB_DIR=$(cat cppweb.conf | jq .cppweb_dir | sed 's/^"\(.*\)"$/\1/')
+
+  rm -r .cppweb/*
+  mkdir -p .cppweb/bin
+  mkdir -p .cppweb/lib
+  mkdir -p .cppweb/include
+  mkdir -p .cppweb/pages
+
+  # BINARIES
+  cp_echo $CPPWEB_DIR/build/server/server .cppweb/bin
+  cp_echo $CPPWEB_DIR/build/compile/compile .cppweb/bin
+
+  # LIBRARIES
+  cp_echo $CPPWEB_DIR/build/lib/html/libhtml.a .cppweb/lib
+  cp_echo $CPPWEB_DIR/build/lib/http/libhttp.a .cppweb/lib
+  cp_echo $CPPWEB_DIR/build/lib/api/libapi.a .cppweb/lib
+  cp_echo $CPPWEB_DIR/build/lib/system/libsystem.a .cppweb/lib
+  cp_echo $CPPWEB_DIR/build/lib/db/libdb.a .cppweb/lib
+
+  # INCLUDES
+  cp_echo $CPPWEB_DIR/common/defines.hpp .cppweb/include
+  cp_dir_echo $CPPWEB_DIR/lib/http/include/http .cppweb/include
+  cp_dir_echo $CPPWEB_DIR/lib/api/include/api .cppweb/include
+  cp_dir_echo $CPPWEB_DIR/lib/html/include/html .cppweb/include
+  cp_dir_echo $CPPWEB_DIR/lib/db/include/db .cppweb/include
+  $0 build
+  ;;
+build)
+  $0 compile
+  .cppweb/bin/compile -c cppweb.conf
+  ;;
+compile)
+  cd build
+  cmake ..
+  ninja
+  ;;
+esac

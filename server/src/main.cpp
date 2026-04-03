@@ -1,7 +1,10 @@
+#include "cppweb/logger.hpp"
 #include "html/components.hpp"
 #include "html/server_rendering_context.hpp"
+#include "sys/logger.hpp"
 #include <api/api.hpp>
 #include <arpa/inet.h>
+#include <cppweb/config.hpp>
 #include <cstdio>
 #include <cstdlib>
 #include <dlfcn.h>
@@ -12,28 +15,17 @@
 #include <http/response.hpp>
 #include <http/tcp_server.hpp>
 #include <iostream>
-#include <json/json.h>
-#include <json/reader.h>
-#include <sstream>
 #include <sys/env.hpp>
-#include <sys/logger.hpp>
 #include <sys/poll.h>
 #include <sys/socket.h>
-
-struct Config {
-  std::string base_api_route = "/api";
-  std::string website_dll = "build/libwebsite.so";
-  std::string page_build_dir = "";
-};
 
 template <typename pfn_t>
 pfn_t *get_func(void *so, std::string const &name, bool can_be_empty = false) {
   void *pfn = dlsym(so, name.c_str());
 
   if (pfn == nullptr && !can_be_empty) {
-    std::cerr << "Error accessing function " << name << " - " << dlerror()
-              << '\n';
-    std::exit(EXIT_FAILURE);
+    logger::fatal_error("Error accessing function %s - %s", name.c_str(),
+                        dlerror());
   }
 
   return reinterpret_cast<pfn_t *>(pfn);
@@ -90,11 +82,15 @@ void LoadedData::load(std::string const &file) {
   so = dlopen(file.c_str(), RTLD_LAZY | RTLD_LOCAL);
 
   if (so == nullptr) {
-    std::cerr << "Error loading library " << file << " - " << dlerror() << '\n';
-    std::exit(EXIT_FAILURE);
+    logger::fatal_error("Error loading library %s - %s", file.c_str(),
+                        dlerror());
   }
 
   dlerror();
+
+  get_func<sys::setup_logger_t>(so, "setup_logger_ext")(
+      logger::info, logger::warn, logger::error, logger::fatal_error,
+      logger::log_extra);
 
   get_api = get_func<fn_get_api_t>(so, "get_api");
   init_api = get_func<fn_init_api_t>(so, "init_api");
@@ -137,13 +133,13 @@ LoadedData LOADED_SO{};
 Config CONFIG;
 
 void create_routes(http::Router &router) {
-  router.forward(CONFIG.base_api_route.c_str(), API->get_func());
+  router.forward(CONFIG.api.root.c_str(), API->get_func());
 
   for (auto const &p :
-       std::filesystem::recursive_directory_iterator(CONFIG.page_build_dir)) {
+       std::filesystem::recursive_directory_iterator(CONFIG.pages.build_dir)) {
     std::filesystem::path filename = p.path();
     std::string path = filename.filename().string();
-    std::cout << "Register: " << path << '\n';
+    logger::log_extra("ROUTE", "registered page: %s", path.c_str());
     router.page(path.c_str(), [filename, path](http::Request r) {
       html::ServerRenderingContext ctx;
       ctx.page_params = std::move(r.params);
@@ -230,42 +226,29 @@ void hot_reload_server(http::HttpServer &serv) {
 }
 
 int main(int argc, char **argv) {
-
+  sys::setup_logger(logger::info, logger::warn, logger::error,
+                    logger::fatal_error, logger::log_extra);
   if (argc > 2) {
-    sys::fatal_error("invalid argument count");
+    logger::fatal_error("invalid argument count");
   }
   if (argc == 2) {
     std::string mode = argv[1];
     if (mode != "dev") {
-      sys::fatal_error("invalid run mode: %s", mode.c_str());
+      logger::fatal_error("invalid run mode: %s", mode.c_str());
     }
     DEV = true;
   }
 
   if (std::filesystem::exists("cppweb.conf")) {
-    std::ifstream f{"cppweb.conf"};
-    Json::Reader r;
-    Json::Value root;
-    r.parse(f, root);
-
-    if (root.isMember("api")) {
-      Json::Value &api = root["api"];
-      if (api.isMember("root")) {
-        CONFIG.base_api_route = api["root"].asString();
-      }
-    }
-    if (root.isMember("pages")) {
-      Json::Value &api = root["pages"];
-      if (api.isMember("build_dir")) {
-        CONFIG.page_build_dir = api["build_dir"].asString();
-      }
-    }
-
-    // TODO:...
+    CONFIG = Config("cppweb.conf");
+    if (CONFIG.logger)
+      logger::set_config(*CONFIG.logger);
   }
 
+  logger::log_extra("TEST", "test extra enabled!");
+
   // TODO: better
-  LOADED_SO.load(CONFIG.website_dll);
+  LOADED_SO.load(CONFIG.cpp_bin());
 
   auto port = std::stoi(sys::get_env_var("PORT", "8080"));
 

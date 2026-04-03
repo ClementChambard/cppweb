@@ -2,10 +2,10 @@
 
 #include <defines.hpp>
 #include <functional>
-#include <iostream>
 #include <map>
 #include <sqlite3.h>
 #include <string>
+#include <sys/logger.hpp>
 #include <vector>
 
 using Rows = std::vector<std::map<std::string, std::string>>;
@@ -54,7 +54,7 @@ struct QueryExecutor {
     int rc =
         sqlite3_exec(m_db, m_query.c_str(), query_callback, this, &zErrMsg);
     if (rc != SQLITE_OK) {
-      std::cerr << "SQL error: " << zErrMsg << '\n';
+      sys::error("SQL error: %s", zErrMsg);
       sqlite3_free(zErrMsg);
     }
     if (m_has_then)
@@ -71,8 +71,7 @@ struct Database {
   void init(std::string const &file_name) {
     int rc = sqlite3_open(file_name.c_str(), &m_db);
     if (rc) {
-      std::cerr << "Can't open database: " << file_name << '\n';
-      std::exit(EXIT_FAILURE);
+      sys::fatal_error("Can't open database: %s", file_name.c_str());
     }
   }
 
@@ -84,7 +83,7 @@ struct Database {
   // &name) { return DropTable{this, name}; }
 
   QueryExecutor exec(std::string const &query) {
-    // std::cout << "Executing query: " << query << '\n';
+    sys::log_extra("DB", "Executing query: %s", query.c_str());
     return QueryExecutor{m_db, query};
   }
 

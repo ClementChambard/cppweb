@@ -1,6 +1,7 @@
 #include "inotify.hpp"
-#include <iostream>
+#include <algorithm>
 #include <sys/inotify.h>
+#include <sys/logger.hpp>
 #include <unistd.h>
 #include <watcher.hpp>
 
@@ -24,8 +25,7 @@ std::string Watcher::get_filename(Event event) const {
 void Watcher::add_watch_for_path(std::string const &path) {
   watches.push_back(new Watch{this, path});
   in_add_watch(watches.back());
-  if (PRINTALL)
-    std::cout << "Now watching: " << path << '\n';
+  sys::log_extra("FSWATCH", "Now watching: %s", path.c_str());
 }
 
 void Watcher::remove_watch_for_deletion(Event event) {
@@ -37,8 +37,7 @@ void Watcher::remove_watch(Watch *w) {
                          [w](auto ww) { return ww == w; });
   if (it != watches.end())
     watches.erase(it);
-  if (PRINTALL)
-    std::cout << "Removed watch " << w->dir_name << '\n';
+  sys::log_extra("FSWATCH", "Removed watch %s", w->dir_name.c_str());
   in_remove_watch(w);
   delete w;
 }

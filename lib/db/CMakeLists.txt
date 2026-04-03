@@ -17,4 +17,4 @@ endif()
 
 target_include_directories(db PRIVATE include/db)
 target_include_directories(db INTERFACE include)
-target_link_libraries(db PUBLIC sqlite3)
+target_link_libraries(db PUBLIC sqlite3 system)

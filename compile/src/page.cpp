@@ -1,6 +1,7 @@
 #include "page.hpp"
-#include "config.hpp"
+#include "sys/logger.hpp"
 #include "ws_connection.hpp"
+#include <cppweb/config.hpp>
 #include <filesystem>
 #include <fstream>
 #include <html/html.hpp>
@@ -88,7 +89,7 @@ void find_pages_it(std::string dir_name, std::string cur_path,
     cur_render_path.push_back(dir_name + "/layout.html");
   }
   if (has_page) {
-    std::cout << "PAGE: " << cur_path << ".html\n";
+    sys::log_extra("COMPILE", "page %s.html", cur_path.c_str());
     pages.push_back(Page{});
     pages.back().output_filename = cur_path + ".html";
     pages.back().render_path.push_back(dir_name + "/page.html");
@@ -119,7 +120,7 @@ std::vector<Page> Page::find_all() {
   std::vector<Page> pages;
 
   std::vector<std::string> cur_path;
-  find_pages_it(CONFIG.pages_dir, CONFIG.pages_build_dir + "/_", pages,
+  find_pages_it(CONFIG.pages.dir, CONFIG.pages.build_dir + "/_", pages,
                 cur_path);
 
   // TODO: check if 2 pages have the same path

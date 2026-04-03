@@ -1,49 +1,37 @@
 #pragma once
 
-#include <cstdarg>
-#include <cstdlib>
-#include <defines.hpp>
-
 namespace sys {
 
-namespace logger {
+using log_fn_t = void(char const *message, ...);
+using log_extra_fn_t = void(char const *extra, char const *message, ...);
 
-enum class Level : u64 {
-  INFO = 0,
-  WARN,
-  ERROR,
-  FATAL,
-  LEVEL_COUNT,
-};
+extern log_fn_t *info;
+extern log_fn_t *warn;
+extern log_fn_t *error;
+extern log_fn_t *fatal_error;
+extern log_extra_fn_t *log_extra;
 
-void initialize();
-void log_inner(Level lvl, char const *message, va_list args);
+#define safe_log(fn, ...)                                                      \
+  if (sys::fn != nullptr)                                                      \
+  sys::fn(__VA_ARGS__)
 
-} // namespace logger
+void setup_logger(log_fn_t *info, log_fn_t *warn, log_fn_t *error,
+                  log_fn_t *fatal_error, log_extra_fn_t *log_extra);
 
-#define LOG_INNER(lvl, message)                                                \
-  va_list args;                                                                \
-  va_start(args, message);                                                     \
-  logger::log_inner(lvl, message, args);                                       \
-  va_end(args)
-
-inline void info(char const *message, ...) {
-  LOG_INNER(logger::Level::INFO, message);
-}
-
-inline void warn(char const *message, ...) {
-  LOG_INNER(logger::Level::WARN, message);
-}
-
-inline void error(char const *message, ...) {
-  LOG_INNER(logger::Level::ERROR, message);
-}
-
-inline void fatal_error(char const *message, ...) {
-  LOG_INNER(logger::Level::FATAL, message);
-  std::exit(EXIT_FAILURE);
-}
-
-#undef LOG_INNER
+using setup_logger_t = void(log_fn_t *info, log_fn_t *warn, log_fn_t *error,
+                            log_fn_t *fatal_error, log_extra_fn_t *log_extra);
 
 } // namespace sys
+
+#ifdef SYS_LOGGER_IMPL
+extern "C" void setup_logger_ext(sys::log_fn_t *info, sys::log_fn_t *warn,
+                                 sys::log_fn_t *error,
+                                 sys::log_fn_t *fatal_error,
+                                 sys::log_extra_fn_t *log_extra) {
+  sys::info = info;
+  sys::warn = warn;
+  sys::error = error;
+  sys::fatal_error = fatal_error;
+  sys::log_extra = log_extra;
+}
+#endif

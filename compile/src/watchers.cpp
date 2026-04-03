@@ -1,11 +1,11 @@
 #include "watchers.hpp"
-#include "config.hpp"
+#include <cppweb/config.hpp>
 #include <sys/poll.h>
 
 void start_watcher_loop() {
-  auto cppwatcher = CppWatcher(CONFIG.cpp_dir);
-  auto sowatcher = SoWatcher(CONFIG.cpp_bin);
-  auto reswatcher = ResourceWatcher(CONFIG.resources_dir);
+  auto cppwatcher = CppWatcher(CONFIG.cpp.src_dir);
+  auto sowatcher = SoWatcher(CONFIG.cpp_bin());
+  auto reswatcher = ResourceWatcher(CONFIG.resources.dir);
 
   /* Prepare for polling.  */
 

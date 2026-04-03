@@ -1,0 +1,10 @@
+#!/bin/sh
+
+PORT=8080
+
+if [[ $1 ]] then
+  PORT=$1
+fi
+
+echo "sudo ss state time-wait sport = $PORT -K"
+sudo ss state time-wait sport = $PORT -K

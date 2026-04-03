@@ -1,7 +1,8 @@
 #include "components.hpp"
+#include "cppweb/logger.hpp"
+#include "sys/logger.hpp"
 
 #include <dlfcn.h>
-#include <iostream>
 
 extern components::Map *REGISTERED_COMPONENTS;
 extern components::ServerMap *REGISTERED_SERVER_COMPONENTS;
@@ -19,9 +20,8 @@ MapH::MapH(std::string const &so_name) {
   so = dlopen(libfullname.c_str(), RTLD_LAZY | RTLD_LOCAL);
 
   if (so == nullptr) {
-    std::cerr << "Error loading library " << libfullname << " - " << dlerror()
-              << '\n';
-    std::exit(EXIT_FAILURE);
+    logger::fatal_error("Error loading library %s - %s", libfullname.c_str(),
+                        dlerror());
   }
 
   dlerror();
@@ -29,9 +29,8 @@ MapH::MapH(std::string const &so_name) {
   void *pfn = dlsym(so, func.c_str());
 
   if (pfn == nullptr) {
-    std::cerr << "Error accessing function " << func << " - " << dlerror()
-              << '\n';
-    std::exit(EXIT_FAILURE);
+    logger::fatal_error("Error accessing function %s - %s", func.c_str(),
+                        dlerror());
   }
 
   get_registered_components = reinterpret_cast<pfn_t *>(pfn);
@@ -39,6 +38,11 @@ MapH::MapH(std::string const &so_name) {
   using grsc_t = components::ServerMap *();
   pfn = dlsym(so, "get_registered_server_components");
   auto get_registered_server_components = reinterpret_cast<grsc_t *>(pfn);
+
+  pfn = dlsym(so, "setup_logger_ext");
+  auto setup_logger = reinterpret_cast<sys::setup_logger_t *>(pfn);
+  setup_logger(logger::info, logger::warn, logger::error, logger::fatal_error,
+               logger::log_extra);
 
   REGISTERED_COMPONENTS = get_registered_components();
   REGISTERED_SERVER_COMPONENTS = get_registered_server_components();

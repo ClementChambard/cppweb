@@ -1,12 +1,15 @@
 #include "args.hpp"
 #include "components.hpp"
-#include "config.hpp"
+#include "cppweb/logger.hpp"
 #include "hot_reload_socket.hpp"
 #include "html/parse.hpp"
 #include "page.hpp"
 #include "sys/logger.hpp"
 #include "ws_connection.hpp"
+#include <cppweb/config.hpp>
 #include <fstream>
+
+Config CONFIG;
 
 void start_watcher_loop();
 
@@ -25,7 +28,7 @@ void run_file(Args const &args) {
 }
 
 void run_config() {
-  MapH map(CONFIG.cpp_bin);
+  MapH map(CONFIG.cpp_bin());
 
   auto pages = Page::find_all();
 
@@ -43,16 +46,20 @@ void run_config() {
 }
 
 int main(int argc, char **argv) {
+  sys::setup_logger(logger::info, logger::warn, logger::error,
+                    logger::fatal_error, logger::log_extra);
 
   Args args;
   args.parse(argc, argv);
 
   if (args.config_name != "") {
     CONFIG = Config(args.config_name);
+    if (CONFIG.logger)
+      logger::set_config(*CONFIG.logger);
     CONFIG.dev = args.dev;
     run_config();
   } else if (args.mode != Args::FILE) {
-    sys::fatal_error("Directory mode not implemented");
+    logger::fatal_error("Directory mode not implemented");
   } else {
     run_file(args);
   }

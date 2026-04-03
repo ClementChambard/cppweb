@@ -13,4 +13,4 @@ else()
   target_compile_definitions(server PRIVATE -DNS_RELEASE=1)
 endif()
 
-target_link_libraries(server PRIVATE api http system html)
+target_link_libraries(server PRIVATE api http system html cppweb)

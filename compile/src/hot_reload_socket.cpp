@@ -1,8 +1,8 @@
 #include "defines.hpp"
+#include "sys/logger.hpp"
 #include <arpa/inet.h>
 #include <cstdio>
 #include <cstdlib>
-#include <iostream>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <thread>
@@ -28,6 +28,6 @@ void hot_reload_socket_close() {
 }
 
 void do_hot_reload() {
-  std::cout << "[compile] => hot reload!\n";
+  sys::log_extra("COMPILE", "hot reload!");
   write(sock, "garbage", 1);
 }
