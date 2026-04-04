@@ -134,6 +134,7 @@ Config CONFIG;
 
 void create_routes(http::Router &router) {
   router.forward(CONFIG.api.root.c_str(), API->get_func());
+  API->base_url = CONFIG.api.root;
 
   for (auto const &p :
        std::filesystem::recursive_directory_iterator(CONFIG.pages.build_dir)) {
