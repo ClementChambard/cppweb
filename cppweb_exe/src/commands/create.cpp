@@ -26,7 +26,7 @@ void create_project(Args::Create const &args) {
   std::filesystem::create_directory(conf.cpp.build_dir);
   std::filesystem::current_path(conf.cpp.build_dir);
   // TODO: builder
-  sys::exe_run("cmake", {"..", "-GNinja"});
+  sys::exe_run("cmake", {".", "-GNinja"});
   sys::exe_run("ninja");
   std::filesystem::current_path("..");
   sys::exe_run(".cppweb/bin/compile", {"-c", "cppweb.conf"}, false);
