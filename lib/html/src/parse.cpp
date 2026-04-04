@@ -8,14 +8,14 @@
 
 using namespace html;
 
-Fragment html::parse(std::string s) {
+Fragment html::parse(std::string s, components::Context *ctx) {
   if (s.size() == 0)
     return {};
   if (s[s.size() - 1] != '\0')
     s += '\0';
   std::string_view cursor = s;
   // check doctype for document ?
-  return parse_fragment(cursor);
+  return parse_fragment(cursor, ctx);
 }
 
 bool skip_whitespace(std::string_view &sv) {
@@ -53,7 +53,7 @@ bool skip_comment_and_whitespace(std::string_view &sv) {
   return was_skipped;
 }
 
-Fragment html::parse_fragment(std::string_view &sv) {
+Fragment html::parse_fragment(std::string_view &sv, components::Context *ctx) {
   Fragment out;
   while (true) {
     skip_comment_and_whitespace(sv);
@@ -67,7 +67,7 @@ Fragment html::parse_fragment(std::string_view &sv) {
     }
     if (sv.starts_with("</") || sv[0] == '\0')
       break;
-    auto f = parse_element(sv);
+    auto f = parse_element(sv, ctx);
     out.insert(out.end(), f.begin(), f.end());
   }
   return out;
@@ -111,17 +111,17 @@ static std::string strlit(std::string_view &sv, std::string_view end = "") {
   return out;
 }
 
-static Fragment maybe_component(Element &&e) {
+static Fragment maybe_component(Element &&e, components::Context *ctx) {
   if (e.name == "Children")
     return {e};
   if (e.name[0] >= 'A' && e.name[0] <= 'Z') {
-    return components::apply_to(std::move(e));
+    return components::apply_to(std::move(e), ctx);
   } else {
     return {e};
   }
 }
 
-Fragment html::parse_element(std::string_view &sv) {
+Fragment html::parse_element(std::string_view &sv, components::Context *ctx) {
   Element e;
   assert(sv[0] == '<' && sv[1] != '/');
   sv = sv.substr(1);
@@ -146,11 +146,11 @@ Fragment html::parse_element(std::string_view &sv) {
     e.self_close = true;
     assert(sv[1] == '>');
     sv = sv.substr(2);
-    return maybe_component(std::move(e));
+    return maybe_component(std::move(e), ctx);
   }
   e.self_close = false;
   sv = sv.substr(1);
-  e.children = parse_fragment(sv);
+  e.children = parse_fragment(sv, ctx);
   assert(sv.starts_with("</"));
   sv = sv.substr(2);
   assert(sv.starts_with(e.name));
@@ -158,7 +158,7 @@ Fragment html::parse_element(std::string_view &sv) {
   skip_whitespace(sv);
   assert(sv[0] == '>');
   sv = sv.substr(1);
-  return maybe_component(std::move(e));
+  return maybe_component(std::move(e), ctx);
 }
 
 std::string html::read_all_text(std::string_view &sv) {
@@ -186,7 +186,7 @@ std::string html::read_all_text(std::string_view &sv) {
   return out;
 }
 
-Document html::parse_document(std::string s) {
+Document html::parse_document(std::string s, components::Context *ctx) {
   if (s.size() == 0)
     return {};
   if (s.starts_with("<!DOCTYPE html>")) {
@@ -197,7 +197,7 @@ Document html::parse_document(std::string s) {
   std::string_view cursor = s;
 
   skip_comment_and_whitespace(cursor);
-  auto root = html::parse_element(cursor);
+  auto root = html::parse_element(cursor, ctx);
   html::Element root_elt;
   auto is_html_elt = [](Node const &n, std::string const &name) {
     return std::holds_alternative<Element>(n) &&

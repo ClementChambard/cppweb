@@ -2,6 +2,7 @@
 #include "components.hpp"
 #include "cppweb/logger.hpp"
 #include "hot_reload_socket.hpp"
+#include "html/components.hpp"
 #include "html/parse.hpp"
 #include "page.hpp"
 #include "sys/logger.hpp"
@@ -20,7 +21,8 @@ void run_file(Args const &args) {
 
   std::ostringstream oss;
   oss << input.rdbuf();
-  auto content = html::parse(oss.str());
+  components::Context ctx;
+  auto content = html::parse(oss.str(), &ctx);
 
   std::ofstream out(args.output_name);
 

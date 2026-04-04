@@ -184,32 +184,34 @@ Element html(std::string const &tag, std::vector<AttrForInsertion> const &attrs,
 }
 
 Fragment component(std::string const &name,
-                   std::vector<AttrForInsertion> const &attrs) {
+                   std::vector<AttrForInsertion> const &attrs,
+                   components::Context *ctx) {
   auto h = html(name, attrs);
   h.self_close = true;
-  return components::apply_to(std::move(h));
+  return components::apply_to(std::move(h), ctx);
 }
 
 Fragment component(std::string const &name,
                    std::vector<AttrForInsertion> const &attrs,
-                   std::vector<Child> &&children) {
-  return components::apply_to(html(name, attrs, std::move(children)));
-}
-
-Fragment component(std::string const &name,
-                   std::vector<AttrForInsertion> const &attrs,
-                   std::vector<AttrForInsertion> &&attrs_spread) {
-  auto h = html(name, attrs, std::move(attrs_spread));
-  h.self_close = true;
-  return components::apply_to(std::move(h));
+                   std::vector<Child> &&children, components::Context *ctx) {
+  return components::apply_to(html(name, attrs, std::move(children)), ctx);
 }
 
 Fragment component(std::string const &name,
                    std::vector<AttrForInsertion> const &attrs,
                    std::vector<AttrForInsertion> &&attrs_spread,
-                   std::vector<Child> &&children) {
+                   components::Context *ctx) {
+  auto h = html(name, attrs, std::move(attrs_spread));
+  h.self_close = true;
+  return components::apply_to(std::move(h), ctx);
+}
+
+Fragment component(std::string const &name,
+                   std::vector<AttrForInsertion> const &attrs,
+                   std::vector<AttrForInsertion> &&attrs_spread,
+                   std::vector<Child> &&children, components::Context *ctx) {
   return components::apply_to(
-      html(name, attrs, std::move(attrs_spread), std::move(children)));
+      html(name, attrs, std::move(attrs_spread), std::move(children)), ctx);
 }
 
 } // namespace html

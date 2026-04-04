@@ -1,4 +1,5 @@
 #include "page.hpp"
+#include "html/components.hpp"
 #include "sys/logger.hpp"
 #include "ws_connection.hpp"
 #include <cppweb/config.hpp>
@@ -25,25 +26,27 @@ void apply_children(html::Fragment &f, html::Fragment const &children) {
 }
 
 html::Fragment compile_file_with_children(std::string const &file_name,
-                                          html::Fragment const &children) {
+                                          html::Fragment const &children,
+                                          components::Context *ctx) {
   (void)children;
   std::ifstream input(file_name);
 
   std::ostringstream oss;
   oss << input.rdbuf();
-  auto frag = html::parse(oss.str());
+  auto frag = html::parse(oss.str(), ctx);
   apply_children(frag, children);
   return frag;
 }
 
 html::Document compile_document_with_children(std::string const &file_name,
-                                              html::Fragment const &children) {
+                                              html::Fragment const &children,
+                                              components::Context *ctx) {
   (void)children;
   std::ifstream input(file_name);
 
   std::ostringstream oss;
   oss << input.rdbuf();
-  auto content = html::parse_document(oss.str());
+  auto content = html::parse_document(oss.str(), ctx);
 
   // TODO: document specific stuff
 
@@ -54,13 +57,24 @@ html::Document compile_document_with_children(std::string const &file_name,
 
 void Page::compile() const {
   html::Fragment contents = {};
+  components::Context ctx;
   for (u32 i = 0; i < render_path.size() - 1; i++) {
-    contents = compile_file_with_children(render_path[i], contents);
+    contents = compile_file_with_children(render_path[i], contents, &ctx);
   }
-  auto document = compile_document_with_children(render_path.back(), contents);
+  auto document =
+      compile_document_with_children(render_path.back(), contents, &ctx);
 
   if (CONFIG.dev) {
     ws_add_script_to_document(document);
+  }
+  auto &head = std::get<html::Element>(document.root_node.children[0]);
+  for (auto const &s : ctx.scripts_to_include) {
+    head.children.push_back(
+        html::html("script", {{"src", s}, {"defer", std::nullopt}}, {}, {}));
+  }
+  for (auto const &s : ctx.css_to_link) {
+    head.children.push_back(
+        html::html("link", {{"href", s}, {"rel", "stylesheet"}}));
   }
 
   std::ofstream out(output_filename);

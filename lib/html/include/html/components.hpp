@@ -4,6 +4,7 @@
 #include "server_rendering_context.hpp"
 #include <defines.hpp>
 #include <map>
+#include <set>
 #include <optional>
 #include <string>
 
@@ -52,10 +53,17 @@ constexpr Interface::Type Interface::Typeof<f64> = Interface::Type::NUMBER;
 template <>
 constexpr Interface::Type Interface::Typeof<bool> = Interface::Type::BOOLEAN;
 
+struct Context {
+  std::set<std::string> css_to_link;
+  std::set<std::string> scripts_to_include;
+  // TODO: more ?
+};
+
 struct Params {
   using Val = Interface::AttributeValue;
   std::map<std::string, Val> attrs;
   html::Fragment inner_html;
+  Context *static_rendering_context;
 
   void add_param(char const *key, std::string const &val) {
     attrs.insert(std::make_pair<std::string, Val>(key, Val(val)));
@@ -71,6 +79,12 @@ struct Params {
   }
   void add_param(char const *key) {
     attrs.insert(std::make_pair<std::string, Val>(key, {}));
+  }
+  void add_css(char const *name) {
+    static_rendering_context->css_to_link.insert(name);
+  }
+  void add_js(char const *name) {
+    static_rendering_context->scripts_to_include.insert(name);
   }
 
   std::optional<Val> take(char const *name);
@@ -116,7 +130,7 @@ public:
 using Map = std::map<std::string, Component const *>;
 using ServerMap = std::map<std::string, ServerComponent const *>;
 
-html::Fragment apply_to(html::Element &&e);
+html::Fragment apply_to(html::Element &&e, Context *ctx);
 
 } // namespace components
 

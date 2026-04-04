@@ -5,6 +5,11 @@
 #include <string>
 #include <variant>
 #include <vector>
+
+namespace components {
+struct Context;
+}
+
 namespace html {
 
 using Node = std::variant<struct Element, std::string>;
@@ -51,16 +56,20 @@ Element html(std::string const &tag, std::vector<AttrForInsertion> const &attrs,
 Element html(std::string const &tag, std::vector<AttrForInsertion> const &attrs,
              std::vector<AttrForInsertion> &&attrs_spread); // self closing
 Fragment component(std::string const &name,
-                   std::vector<AttrForInsertion> const &attrs);
+                   std::vector<AttrForInsertion> const &attrs,
+                   components::Context *ctx = nullptr);
 Fragment component(std::string const &name,
                    std::vector<AttrForInsertion> const &attrs,
-                   std::vector<Child> &&children);
-Fragment component(std::string const &name,
-                   std::vector<AttrForInsertion> const &attrs,
-                   std::vector<AttrForInsertion> &&attrs_spread);
+                   std::vector<Child> &&children,
+                   components::Context *ctx = nullptr);
 Fragment component(std::string const &name,
                    std::vector<AttrForInsertion> const &attrs,
                    std::vector<AttrForInsertion> &&attrs_spread,
-                   std::vector<Child> &&children);
+                   components::Context *ctx = nullptr);
+Fragment component(std::string const &name,
+                   std::vector<AttrForInsertion> const &attrs,
+                   std::vector<AttrForInsertion> &&attrs_spread,
+                   std::vector<Child> &&children,
+                   components::Context *ctx = nullptr);
 
 } // namespace html

@@ -161,7 +161,7 @@ std::string const &get_my_name(ServerComponent const *sc) {
   return INVALID_COMPONENT_NAME;
 }
 
-html::Fragment apply_to(html::Element &&e) {
+html::Fragment apply_to(html::Element &&e, Context *ctx) {
   Component const *c = Component::find(e.name);
   if (c == nullptr) {
     return {"unknown component"};
@@ -177,6 +177,7 @@ html::Fragment apply_to(html::Element &&e) {
   }
 
   Params params;
+  params.static_rendering_context = ctx;
   params.inner_html = e.children;
   for (auto const &[k, v] : e.attrs) {
     Params::Val new_val;
