@@ -35,12 +35,12 @@ void run_config() {
   build_all_pages();
 
   if (CONFIG.dev) {
+    ws_open_connection();
     hot_reload_socket_create();
     do_hot_reload();
-    ws_open_connection();
     start_watcher_loop();
-    ws_close_connection();
     hot_reload_socket_close();
+    ws_close_connection();
   }
 }
 

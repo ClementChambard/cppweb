@@ -12,7 +12,7 @@
 
 namespace http {
 
-static void process_request(Connection &self, Request &r) {
+static std::string process_request(Connection &self, Request &r) {
   i64 bytes_sent;
 
   auto response = reinterpret_cast<HttpServer *>(self.m_server)
@@ -22,11 +22,12 @@ static void process_request(Connection &self, Request &r) {
   bytes_sent =
       write(self.m_socket, server_message.data(), server_message.size());
 
-  if (u64(bytes_sent) == server_message.size()) {
-    sys::info(" ==> %s", response.first_line().c_str());
-  } else {
-    sys::error(" ==> Error sending response to client\n");
+  if (u64(bytes_sent) != server_message.size()) {
+    sys::error("%s:%-5d => Error sending response to client",
+               inet_ntoa(self.m_socket_address.sin_addr),
+               ntohs(self.m_socket_address.sin_port));
   }
+  return response.first_line();
 }
 
 static void close_connection(TcpServer *self, Connection *con) {
@@ -36,16 +37,11 @@ static void close_connection(TcpServer *self, Connection *con) {
   self->m_active_connections.erase(it);
   self->m_connections_mutex.unlock();
   con->m_thread.detach();
-  sys::info("------ connection closed ------");
   delete con;
 }
 
 void http_client_thread(Connection *self) {
   static constexpr u64 BUFFER_SIZE = 30720;
-
-  sys::info("------ new connection from ADDRESS: %s PORT: %d ------",
-            inet_ntoa(self->m_socket_address.sin_addr),
-            ntohs(self->m_socket_address.sin_port));
 
   i32 bytes_received;
 
@@ -58,12 +54,15 @@ void http_client_thread(Connection *self) {
     if (bytes_received == 0) {
       break;
     } else if (bytes_received < 0) {
-      sys::error(" ==> Failed to read bytes from client socket connection");
+      sys::error(
+          "%s:%-5d => Failed to read bytes from client socket connection",
+          inet_ntoa(self->m_socket_address.sin_addr),
+          ntohs(self->m_socket_address.sin_port));
       break;
     }
 
     if (bytes_received == BUFFER_SIZE) {
-      sys::warn("   * Request might be too long for internal buffer...");
+      sys::warn(" * Request might be too long for internal buffer...");
     }
 
     buffer[bytes_received] = 0;
@@ -71,9 +70,11 @@ void http_client_thread(Connection *self) {
     // => should read more.
 
     Request r = Request::parse(buffer);
-    sys::info(" ==> %s", r.first_line().c_str());
 
-    process_request(*self, r);
+    std::string res = process_request(*self, r);
+    sys::info("%s:%-5d %s\t=> %s", inet_ntoa(self->m_socket_address.sin_addr),
+              ntohs(self->m_socket_address.sin_port), r.first_line().c_str(),
+              res.c_str());
     // break;
   }
 

@@ -174,7 +174,17 @@ char const *request_kind_to_string(Request::Kind k) {
 
 std::string Request::first_line() {
   std::ostringstream oss;
-  oss << request_kind_to_string(kind) << " " << endpoint << " " << protocol;
+  oss << request_kind_to_string(kind) << " " << endpoint;
+  if (query.size() > 0) {
+    oss << '?';
+    bool put_amp = false;
+    for (auto &[k, v] : query) {
+      if (put_amp)
+        oss << '&';
+      oss << k << '=' << v;
+    }
+  }
+  oss << " " << protocol;
   return oss.str();
 }
 

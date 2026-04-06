@@ -73,7 +73,9 @@ void ws_client_thread(Connection *self) {
   i32 bytes_received;
 
   char buffer[BUFFER_SIZE + 1];
-  sys::info("New WS Connection");
+  sys::info("%s:%-5d => New WS Connection",
+            inet_ntoa(self->m_socket_address.sin_addr),
+            ntohs(self->m_socket_address.sin_port));
 
   buffer[0] = 0;
   bytes_received = read(self->m_socket, buffer, BUFFER_SIZE);
@@ -98,7 +100,9 @@ void ws_client_thread(Connection *self) {
       break;
   }
 
-  sys::info("WS Connection closed");
+  sys::info("%s:%-5d => WS Connection Closed",
+            inet_ntoa(self->m_socket_address.sin_addr),
+            ntohs(self->m_socket_address.sin_port));
   close(self->m_socket);
 
   close_connection(self->m_server, self);
