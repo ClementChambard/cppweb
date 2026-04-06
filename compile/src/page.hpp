@@ -12,3 +12,5 @@ struct Page {
 
   static std::vector<Page> find_all();
 };
+
+void build_all_pages();

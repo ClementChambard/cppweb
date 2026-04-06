@@ -23,6 +23,7 @@ struct TcpServer {
   ~TcpServer();
 
   void start_listen(bool async = false);
+  void stop();
 
   void broadcast_message(std::vector<u8> const &message_bytes);
 
@@ -35,6 +36,7 @@ struct TcpServer {
   std::mutex m_connections_mutex;
   std::thread m_server_thread;
   std::atomic<bool> m_should_quit;
+  bool m_running = false;
 };
 
 void http_client_thread(Connection *);

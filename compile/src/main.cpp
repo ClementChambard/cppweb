@@ -32,17 +32,14 @@ void run_file(Args const &args) {
 void run_config() {
   MapH map(CONFIG.cpp_bin());
 
-  auto pages = Page::find_all();
-
-  for (auto const &p : pages) {
-    p.compile();
-  }
+  build_all_pages();
 
   if (CONFIG.dev) {
     hot_reload_socket_create();
     do_hot_reload();
     ws_open_connection();
     start_watcher_loop();
+    ws_close_connection();
     hot_reload_socket_close();
   }
 }

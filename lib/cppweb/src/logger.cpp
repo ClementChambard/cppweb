@@ -203,10 +203,10 @@ void log_to_file(const char *time, Level lvl, const char *message) {
 struct ch_color {
   ch_color(std::string_view color) : color(color) {}
   std::string_view color;
-  static std::string_view cur_color;
+  static thread_local std::string_view cur_color;
   static ch_color reset() { return {""}; }
 };
-std::string_view ch_color::cur_color;
+thread_local std::string_view ch_color::cur_color;
 
 std::ostream &operator<<(std::ostream &lhs, ch_color const &rhs) {
   if (!CONFIG.colorized || rhs.color == ch_color::cur_color)
@@ -220,29 +220,33 @@ std::ostream &operator<<(std::ostream &lhs, ch_color const &rhs) {
 
 void log_to_console(const char *time, Level lvl, const char *message) {
   std::ostringstream oss;
+  oss << ch_color(CONFIG.colors.time) << time
+      << ch_color(CONFIG.colors.lvl[int(lvl)].name) << "["
+      << level_strings[int(lvl)]
+      << "]: " << ch_color(CONFIG.colors.lvl[int(lvl)].text) << message
+      << ch_color::reset() << '\n';
+
   auto *stream = &std::cout;
   if (lvl >= Level::ERROR)
     stream = &std::cerr;
-  *stream << ch_color(CONFIG.colors.time) << time
-          << ch_color(CONFIG.colors.lvl[int(lvl)].name) << "["
-          << level_strings[int(lvl)]
-          << "]: " << ch_color(CONFIG.colors.lvl[int(lvl)].text) << message
-          << ch_color::reset() << '\n';
+  *stream << oss.str();
 }
 
 void log_to_console_extra(const char *time, const char *extra,
                           const char *message) {
   std::ostringstream oss;
-  auto *stream = &std::cout;
 
   std::string extra_kind_color = CONFIG.colors.lvl[int(Level::EXTRA)].name;
   if (CONFIG.colors.extra_kind)
     extra_kind_color = *CONFIG.colors.extra_kind;
 
-  *stream << ch_color(CONFIG.colors.time) << time << ch_color(extra_kind_color)
-          << "[" << extra
-          << "]: " << ch_color(CONFIG.colors.lvl[int(Level::EXTRA)].text)
-          << message << ch_color::reset() << '\n';
+  oss << ch_color(CONFIG.colors.time) << time << ch_color(extra_kind_color)
+      << "[" << extra
+      << "]: " << ch_color(CONFIG.colors.lvl[int(Level::EXTRA)].text) << message
+      << ch_color::reset() << '\n';
+
+  auto *stream = &std::cout;
+  *stream << oss.str();
 }
 
 void log_inner(Level lvl, const char *extra, const char *message,

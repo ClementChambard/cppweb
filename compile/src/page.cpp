@@ -144,3 +144,11 @@ std::vector<Page> Page::find_all() {
 
   return pages;
 }
+
+void build_all_pages() {
+  auto pages = Page::find_all();
+
+  for (auto const &p : pages) {
+    p.compile();
+  }
+}

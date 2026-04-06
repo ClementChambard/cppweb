@@ -2,6 +2,7 @@
 
 #include "request.hpp"
 #include "response.hpp"
+#include "sys/logger.hpp"
 #include "tcp_server.hpp"
 #include "ws.hpp"
 #include <algorithm>
@@ -72,6 +73,7 @@ void ws_client_thread(Connection *self) {
   i32 bytes_received;
 
   char buffer[BUFFER_SIZE + 1];
+  sys::info("New WS Connection");
 
   buffer[0] = 0;
   bytes_received = read(self->m_socket, buffer, BUFFER_SIZE);
@@ -96,6 +98,7 @@ void ws_client_thread(Connection *self) {
       break;
   }
 
+  sys::info("WS Connection closed");
   close(self->m_socket);
 
   close_connection(self->m_server, self);

@@ -8,6 +8,11 @@ struct MapH {
 
   components::Component const *find(char const *name) const;
 
+  static void hot_reload();
+
 private:
   void *so;
+  std::string lib_full_name;
+
+  friend void init();
 };

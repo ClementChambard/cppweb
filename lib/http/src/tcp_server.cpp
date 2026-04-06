@@ -53,22 +53,12 @@ TcpServer::TcpServer(char const *ip_address, i32 port, fp_connection *fn)
 
   if (bind(m_socket, (sockaddr *)&m_socket_address, sizeof(m_socket_address)) <
       0) {
-    sys::fatal_error("Cannot connect socket to address");
+    sys::fatal_error("Cannot connect socket to address %s:%d", ip_address,
+                     port);
   }
 }
 
-TcpServer::~TcpServer() {
-  m_should_quit = true;
-  shutdown(m_socket, SHUT_RDWR); // this does not shutdown the socket ????
-  close(m_socket);
-  m_server_thread.join();
-  m_connections_mutex.lock();
-  for (auto const &client : m_active_connections) {
-    delete client;
-  }
-  m_connections_mutex.unlock();
-  sys::info("Server stopped");
-}
+TcpServer::~TcpServer() { stop(); }
 
 void server_thread_run(TcpServer *self) {
   socklen_t client_addr_size = sizeof(sockaddr_in);
@@ -106,6 +96,7 @@ void server_console_loop(TcpServer &self) {
 }
 
 void TcpServer::start_listen(bool async) {
+  m_running = true;
   if (listen(m_socket, 20) < 0) {
     sys::fatal_error("Socket listen failed");
   }
@@ -118,6 +109,22 @@ void TcpServer::start_listen(bool async) {
   if (!async) {
     server_console_loop(*this);
   }
+}
+
+void TcpServer::stop() {
+  if (!m_running)
+    return;
+  m_running = false;
+  m_should_quit = true;
+  shutdown(m_socket, SHUT_RDWR); // this does not shutdown the socket ????
+  close(m_socket);
+  m_server_thread.join();
+  m_connections_mutex.lock();
+  for (auto const &client : m_active_connections) {
+    delete client;
+  }
+  m_connections_mutex.unlock();
+  sys::info("Server stopped");
 }
 
 void TcpServer::broadcast_message(std::vector<u8> const &message_bytes) {

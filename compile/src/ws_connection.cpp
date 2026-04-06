@@ -3,6 +3,7 @@
 #include <http/ws.hpp>
 #include <json/json.h>
 #include <sstream>
+#include <thread>
 
 http::TcpServer *WS_SERVER;
 
@@ -15,6 +16,12 @@ void ws_open_connection() {
   WS_SERVER = new http::WsServer("0.0.0.0", 8081);
 
   WS_SERVER->start_listen(true);
+}
+
+void ws_close_connection() {
+  ws_send_string("{\"action\":\"close\"}");
+  std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  WS_SERVER->stop();
 }
 
 void ws_send_json(Json::Value v) {

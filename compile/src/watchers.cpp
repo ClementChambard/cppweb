@@ -6,6 +6,7 @@ void start_watcher_loop() {
   auto cppwatcher = CppWatcher(CONFIG.cpp.src_dir);
   auto sowatcher = SoWatcher(CONFIG.cpp_bin());
   auto reswatcher = ResourceWatcher(CONFIG.resources.dir);
+  auto htmlwatcher = HtmlWatcher(CONFIG.pages.dir);
 
   /* Prepare for polling.  */
 
