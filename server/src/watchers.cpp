@@ -1,5 +1,6 @@
 #include "watchers.hpp"
 #include <cppweb/config.hpp>
+#include <cstring>
 #include <sys/poll.h>
 
 void start_watcher_loop() {
@@ -35,16 +36,15 @@ void start_watcher_loop() {
 
         /* Console input is available.  Empty stdin and quit.  */
 
-        char buf;
-        while (read(STDIN_FILENO, &buf, 1) > 0 && buf != '\n')
-          continue;
-        break;
+        char buf[1024];
+        auto cnt = read(STDIN_FILENO, &buf, 1023);
+        if (cnt < 0 || memcmp(buf, "/stop", 5) == 0)
+          return;
       }
 
       if (fds[1].revents & POLLIN) {
 
         /* Inotify events are available.  */
-
         Watcher::handle_events();
       }
     }

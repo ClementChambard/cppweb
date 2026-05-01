@@ -1,22 +1,16 @@
-#include <connection.hpp>
-#include <tcp_server.hpp>
+#include "http_server.hpp"
+#include "connection.hpp"
 
-#include "ws.hpp"
 #include <arpa/inet.h>
 #include <iostream>
 #include <netinet/in.h>
 #include <string>
 #include <sys/logger.hpp>
-#include <sys/read_file.hpp>
 #include <sys/socket.h>
-#include <thread>
-#include <unistd.h>
 
-void http::ServerCommand::parse() {}
+void ServerCommand::parse() {}
 
-bool http::execute_server_command(http::TcpServer &serv,
-                                  http::ServerCommand const &cmd) {
-  (void)serv;
+bool execute_server_command(ServerCommand const &cmd) {
   if (cmd.cmd == "/stop") {
     return true;
   }
@@ -26,20 +20,12 @@ bool http::execute_server_command(http::TcpServer &serv,
               " - /help: show this message\n");
     return false;
   }
-
-  std::vector<u8> OUT{(u8 *)cmd.cmd.data(),
-                      (u8 *)cmd.cmd.data() + cmd.cmd.size()};
-  auto out = write_ws(OUT);
-
-  serv.broadcast_message(out);
   return false;
 }
 
-namespace http {
-
-TcpServer::TcpServer(char const *ip_address, i32 port, fp_connection *fn)
-    : m_connection_func(fn), m_ip_address(ip_address), m_port(port), m_socket(),
-      m_socket_address(), m_should_quit(false) {
+HttpServer::HttpServer(char const *ip_address, i32 port)
+    : m_ip_address(ip_address), m_port(port), m_socket(), m_socket_address(),
+      m_should_quit(false) {
   m_socket_address.sin_family = AF_INET;
   m_socket_address.sin_port = htons(m_port);
   m_socket_address.sin_addr.s_addr = inet_addr(ip_address);
@@ -58,9 +44,9 @@ TcpServer::TcpServer(char const *ip_address, i32 port, fp_connection *fn)
   }
 }
 
-TcpServer::~TcpServer() { stop(); }
+HttpServer::~HttpServer() { stop(); }
 
-void server_thread_run(TcpServer *self) {
+void server_thread_run(HttpServer *self) {
   socklen_t client_addr_size = sizeof(sockaddr_in);
 
   Connection *client = new Connection;
@@ -77,25 +63,25 @@ void server_thread_run(TcpServer *self) {
     }
     self->m_connections_mutex.lock();
     self->m_active_connections.push_back(client);
-    client->start_thread(self->m_connection_func);
+    client->start_thread();
     self->m_connections_mutex.unlock();
     client = new Connection;
   }
   delete client;
 }
 
-void server_console_loop(TcpServer &self) {
+void server_console_loop() {
   while (true) {
     ServerCommand cmd;
     std::getline(std::cin, cmd.cmd, '\n');
     cmd.parse();
-    if (execute_server_command(self, cmd)) {
+    if (execute_server_command(cmd)) {
       break;
     }
   }
 }
 
-void TcpServer::start_listen(bool async) {
+void HttpServer::start_listen(bool async) {
   m_running = true;
   if (listen(m_socket, 20) < 0) {
     sys::fatal_error("Socket listen failed");
@@ -107,11 +93,11 @@ void TcpServer::start_listen(bool async) {
   m_server_thread = std::thread(server_thread_run, this);
 
   if (!async) {
-    server_console_loop(*this);
+    server_console_loop();
   }
 }
 
-void TcpServer::stop() {
+void HttpServer::stop() {
   if (!m_running)
     return;
   m_running = false;
@@ -127,10 +113,10 @@ void TcpServer::stop() {
   sys::info("Server stopped");
 }
 
-void TcpServer::broadcast_message(std::vector<u8> const &message_bytes) {
+void HttpServer::ws_broadcast_message(char const *origin,
+                                      std::vector<u8> const &message_bytes) {
   for (auto c : m_active_connections) {
-    write(c->m_socket, message_bytes.data(), message_bytes.size());
+    if (c->ws && c->ws->origin_endpoint == origin)
+      c->ws->send_message(message_bytes.data(), message_bytes.size());
   }
 }
-
-} // namespace http

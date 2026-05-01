@@ -200,7 +200,8 @@ Request::operator std::string() {
   return oss.str();
 }
 
-std::string Request::string_param(char const *name, char const *default_value) {
+std::string Request::string_param(char const *name,
+                                  char const *default_value) const {
   if (auto const &it = params.find(name); it != params.end()) {
     return it->second;
   } else {
@@ -216,7 +217,7 @@ i32 Request::int_param(char const *name, i32 default_value) {
   }
 }
 
-std::string Request::header(char const *name, char const *default_value) {
+std::string Request::header(char const *name, char const *default_value) const {
   if (auto const &it = headers.find(name); it != headers.end()) {
     return it->second;
   } else {

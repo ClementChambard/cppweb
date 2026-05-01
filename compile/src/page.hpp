@@ -10,7 +10,9 @@ struct Page {
 
   void compile() const;
 
-  static std::vector<Page> find_all();
+  static std::vector<Page> find_all(std::string const &input_dir,
+                                    std::string const &output_dir);
 };
 
-void build_all_pages();
+void build_all_pages(std::string const &input_dir,
+                     std::string const &output_dir);

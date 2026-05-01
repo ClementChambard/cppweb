@@ -44,9 +44,10 @@ struct Request {
 
   std::string first_line();
 
-  std::string header(char const *name, char const *default_value = "");
+  std::string header(char const *name, char const *default_value = "") const;
 
-  std::string string_param(char const *name, char const *default_value = "");
+  std::string string_param(char const *name,
+                           char const *default_value = "") const;
   i32 int_param(char const *name, i32 default_value = 0);
 };
 

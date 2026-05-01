@@ -1,14 +1,14 @@
 #pragma once
 
-#include <defines.hpp>
 #include <cassert>
+#include <defines.hpp>
 #include <map>
 #include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-namespace html {
+namespace cppweb {
 
 struct ServerRenderingContext {
   std::string current_page;
@@ -26,7 +26,8 @@ struct ServerRenderingContext {
     m_param_str = err;
   }
 
-  void custom_response(std::string const &response_type, u8 const *data, u64 size);
+  void custom_response(std::string const &response_type, u8 const *data,
+                       u64 size);
 
   std::optional<std::string> get_cookie(std::string const &name) const;
 
@@ -49,4 +50,4 @@ private:
   bool m_is_custom_response = false;
 };
 
-} // namespace html
+} // namespace cppweb

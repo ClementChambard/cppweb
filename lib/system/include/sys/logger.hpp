@@ -1,37 +1,26 @@
 #pragma once
 
+#include <cstdarg>
+#include <defines.hpp>
+
 namespace sys {
 
-using log_fn_t = void(char const *message, ...);
-using log_extra_fn_t = void(char const *extra, char const *message, ...);
+enum class LogLevel : u64 {
+  EXTRA = 0,
+  INFO,
+  WARN,
+  ERROR,
+  FATAL,
+  LEVEL_COUNT,
+};
 
-extern log_fn_t *info;
-extern log_fn_t *warn;
-extern log_fn_t *error;
-extern log_fn_t *fatal_error;
-extern log_extra_fn_t *log_extra;
+void load_logger_config();
+void log_inner(LogLevel lvl, char const *extra_name, char const *message,
+               va_list args);
 
-#define safe_log(fn, ...)                                                      \
-  if (sys::fn != nullptr)                                                      \
-  sys::fn(__VA_ARGS__)
-
-void setup_logger(log_fn_t *info, log_fn_t *warn, log_fn_t *error,
-                  log_fn_t *fatal_error, log_extra_fn_t *log_extra);
-
-using setup_logger_t = void(log_fn_t *info, log_fn_t *warn, log_fn_t *error,
-                            log_fn_t *fatal_error, log_extra_fn_t *log_extra);
-
+void info(char const *message, ...);
+void warn(char const *message, ...);
+void error(char const *message, ...);
+void fatal_error(char const *message, ...);
+void log_extra(const char *extra, const char *message, ...);
 } // namespace sys
-
-#ifdef SYS_LOGGER_IMPL
-extern "C" void setup_logger_ext(sys::log_fn_t *info, sys::log_fn_t *warn,
-                                 sys::log_fn_t *error,
-                                 sys::log_fn_t *fatal_error,
-                                 sys::log_extra_fn_t *log_extra) {
-  sys::info = info;
-  sys::warn = warn;
-  sys::error = error;
-  sys::fatal_error = fatal_error;
-  sys::log_extra = log_extra;
-}
-#endif

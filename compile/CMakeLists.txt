@@ -13,4 +13,4 @@ else()
   target_compile_definitions(compile PRIVATE -DNS_RELEASE=1)
 endif()
 
-target_link_libraries(compile PRIVATE html jsoncpp system fswatch http cppweb)
+target_link_libraries(compile PRIVATE jsoncpp system cppweb)

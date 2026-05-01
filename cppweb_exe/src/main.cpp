@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
     break;
   case Args::UPDATE:
     expect_config();
-    update_cppweb();
+    update_cppweb(args.update);
     break;
   case Args::BUILD:
     expect_config();

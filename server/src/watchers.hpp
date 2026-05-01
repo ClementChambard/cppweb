@@ -1,8 +1,7 @@
 #pragma once
 
-#include "components.hpp"
-#include "hot_reload_socket.hpp"
-#include "page.hpp"
+#include "cppweb/config.hpp"
+#include "loaded_data.hpp"
 #include "sys/logger.hpp"
 #include "ws_connection.hpp"
 #include <chrono>
@@ -54,6 +53,18 @@ struct Timeouter {
   std::thread thread;
 };
 
+inline void build_all_pages() {
+  auto bin = CONFIG.cpp_bin();
+  char const *args_[] = {".cppweb/bin/compile",
+                         "-dev",
+                         "-d",
+                         bin.c_str(),
+                         CONFIG.pages.dir.c_str(),
+                         "-o",
+                         CONFIG.pages.build_dir.c_str()};
+  sys::subprocess_run(args_);
+}
+
 struct CppWatcher : RecursiveFileWatcher {
   CppWatcher(std::string const &p) : RecursiveFileWatcher(p) {}
 
@@ -87,10 +98,7 @@ struct SoWatcher : SingleFileWatcher {
       return;
     if ((e.event->mask & IN_CLOSE_WRITE) == 0)
       return;
-    // auto diff = rebuild_pages();
-    // ws_send_string("{\"changed_pages\": [\"/\"]}");
-    do_hot_reload();
-    MapH::hot_reload();
+    LOADED_SO.hot_reload();
     build_all_pages();
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     ws_send_string("{\"action\":\"refresh\"}");
@@ -103,8 +111,6 @@ struct HtmlWatcher : RecursiveFileWatcher {
   static void exec(std::set<std::string> &&changed_files) {
     (void)changed_files;
     // TODO: only recompile affected page
-    // auto diff a rebuild_pages();
-    // ws_send_string("{\"changed_pages\": [\"/\"]}");
     build_all_pages();
     ws_send_string("{\"action\":\"refresh\"}");
   }

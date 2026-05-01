@@ -56,6 +56,7 @@ struct Config {
   void write(std::string_view file_name);
 
   bool dev = false;
+  bool loaded = false;
   std::string cpp_bin() const {
     return cpp.build_dir + "/lib" + cpp.lib_name + ".so";
   }

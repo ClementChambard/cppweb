@@ -18,6 +18,9 @@ Args Args::parse(int argc, char **argv) {
   case RUN:
     out.parse_run_args(argc, argv);
     break;
+  case UPDATE:
+    out.parse_update_args(argc, argv);
+    break;
   case HELP:
     if (argc > 0) {
       show_help(shift(argc, argv));
@@ -59,8 +62,10 @@ void Args::show_help(std::string_view subcommand) {
                  "  builds the project\n\n"
                  "This command builds the entire project.\n";
   } else if (subcommand == "update") {
-    std::cout << "cppweb update\n"
+    std::cout << "cppweb update [bin]\n"
                  "  updates the cppweb framework\n\n"
+                 "Args:\n"
+                 "  bin   Only update binaries\n\n"
                  "This command recreates the runtime data.\n"
                  "This can be useful if you recompiled the cppweb libraries "
                  "and want your project to use these new versions.\n";
@@ -220,5 +225,23 @@ void Args::parse_run_args(int &argc, char **&argv) {
       run.run_mode = parse_run_mode(arg);
       has_mode = true;
     }
+  }
+}
+
+void Args::parse_update_args(int &argc, char **&argv) {
+  if (argc == 0)
+    return;
+  if (argc != 1) {
+    error_message("too many argument");
+    show_help("update");
+    std::exit(EXIT_FAILURE);
+  }
+  auto a = shift(argc, argv);
+  if (a == "bin")
+    update.bin_only = true;
+  else {
+    error_message("invalid argument");
+    show_help("update");
+    std::exit(EXIT_FAILURE);
   }
 }

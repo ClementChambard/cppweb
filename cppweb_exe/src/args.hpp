@@ -33,6 +33,11 @@ struct Args {
     RunMode run_mode = NORMAL;
   } run{};
 
+  // update args
+  struct Update {
+    bool bin_only = false;
+  } update{};
+
   static Args parse(int argc, char **argv);
 
   static void show_help(std::string_view subcommand = "");
@@ -46,4 +51,5 @@ private:
   static RunMode parse_run_mode(std::string_view run_mode_name);
   void parse_create_args(int &argc, char **&argv);
   void parse_run_args(int &argc, char **&argv);
+  void parse_update_args(int &argc, char **&argv);
 };

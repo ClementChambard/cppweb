@@ -1,22 +1,24 @@
-#include <connection.hpp>
-
+#include "connection.hpp"
+#include "http_server.hpp"
 #include <algorithm>
 #include <arpa/inet.h>
-#include <request.hpp>
+#include <http/request.hpp>
 #include <string>
 #include <sys/logger.hpp>
-#include <sys/socket.h>
-#include <tcp_server.hpp>
 #include <thread>
 #include <unistd.h>
 
-namespace http {
-
-static std::string process_request(Connection &self, Request &r) {
+static std::string process_request(Connection &self, http::Request &r) {
   i64 bytes_sent;
 
-  auto response = reinterpret_cast<HttpServer *>(self.m_server)
-                      ->m_router.process_request(r);
+  http::Response response;
+  if (auto *ws = self.m_server->m_router.maybe_process_ws(r); ws != nullptr) {
+    self.ws = ws;
+    ws->fd = self.m_socket;
+    response = http::WSConnection::respond_to_ws(r);
+  } else {
+    response = self.m_server->m_router.process_request(r);
+  }
   std::vector<u8> server_message = std::vector<u8>(response);
 
   bytes_sent =
@@ -28,16 +30,6 @@ static std::string process_request(Connection &self, Request &r) {
                ntohs(self.m_socket_address.sin_port));
   }
   return response.first_line();
-}
-
-static void close_connection(TcpServer *self, Connection *con) {
-  self->m_connections_mutex.lock();
-  auto it = std::find(self->m_active_connections.begin(),
-                      self->m_active_connections.end(), con);
-  self->m_active_connections.erase(it);
-  self->m_connections_mutex.unlock();
-  con->m_thread.detach();
-  delete con;
 }
 
 void http_client_thread(Connection *self) {
@@ -63,24 +55,40 @@ void http_client_thread(Connection *self) {
 
     if (bytes_received == BUFFER_SIZE) {
       sys::warn(" * Request might be too long for internal buffer...");
+      // TODO: maybe not enough bytes in buffer when parsing request ?
+      // => should read more.
     }
 
     buffer[bytes_received] = 0;
-    // TODO: maybe not enough bytes in buffer when parsing request ?
-    // => should read more.
 
-    Request r = Request::parse(buffer);
+    http::Request r = http::Request::parse(buffer);
 
     std::string res = process_request(*self, r);
     sys::info("%s:%-5d %s\t=> %s", inet_ntoa(self->m_socket_address.sin_addr),
               ntohs(self->m_socket_address.sin_port), r.first_line().c_str(),
               res.c_str());
+
+    if (self->ws) {
+      sys::info("%s:%-5d => New WS Connection",
+                inet_ntoa(self->m_socket_address.sin_addr),
+                ntohs(self->m_socket_address.sin_port));
+      self->ws->run();
+      sys::info("%s:%-5d => WS Connection Closed",
+                inet_ntoa(self->m_socket_address.sin_addr),
+                ntohs(self->m_socket_address.sin_port));
+      delete self->ws;
+      break;
+    }
     // break;
   }
 
   close(self->m_socket);
 
-  close_connection(self->m_server, self);
+  self->m_server->m_connections_mutex.lock();
+  auto it = std::find(self->m_server->m_active_connections.begin(),
+                      self->m_server->m_active_connections.end(), self);
+  self->m_server->m_active_connections.erase(it);
+  self->m_server->m_connections_mutex.unlock();
+  self->m_thread.detach();
+  delete self;
 }
-
-} // namespace http

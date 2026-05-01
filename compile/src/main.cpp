@@ -1,66 +1,35 @@
 #include "args.hpp"
-#include "components.hpp"
-#include "cppweb/logger.hpp"
-#include "hot_reload_socket.hpp"
-#include "html/components.hpp"
-#include "html/parse.hpp"
+#include "component_library.hpp"
 #include "page.hpp"
 #include "sys/logger.hpp"
-#include "ws_connection.hpp"
 #include <cppweb/config.hpp>
-#include <fstream>
-
-Config CONFIG;
 
 void start_watcher_loop();
 
-void run_file(Args const &args) {
-  MapH map(args.component_library);
-
-  std::ifstream input(args.input_name);
-
-  std::ostringstream oss;
-  oss << input.rdbuf();
-  components::Context ctx;
-  auto content = html::parse(oss.str(), &ctx);
-
-  std::ofstream out(args.output_name);
-
-  out << "<!DOCTYPE html>" << html::node_str(content);
-}
-
 void run_config() {
-  MapH map(CONFIG.cpp_bin());
+  ComponentLibrary lib(CONFIG.cpp_bin());
 
-  build_all_pages();
-
-  if (CONFIG.dev) {
-    ws_open_connection();
-    hot_reload_socket_create();
-    do_hot_reload();
-    start_watcher_loop();
-    hot_reload_socket_close();
-    ws_close_connection();
-  }
+  build_all_pages(CONFIG.pages.dir, CONFIG.pages.build_dir);
 }
 
 int main(int argc, char **argv) {
-  sys::setup_logger(logger::info, logger::warn, logger::error,
-                    logger::fatal_error, logger::log_extra);
-
   Args args;
   args.parse(argc, argv);
 
   if (args.config_name != "") {
     CONFIG = Config(args.config_name);
-    if (CONFIG.logger)
-      logger::set_config(*CONFIG.logger);
+    sys::load_logger_config();
     CONFIG.dev = args.dev;
     run_config();
-  } else if (args.mode != Args::FILE) {
-    logger::fatal_error("Directory mode not implemented");
-  } else {
+  } /*else if (args.mode == Args::FILE) {
     run_file(args);
+  }*/
+  else if (args.mode == Args::DIRECTORY) {
+    ComponentLibrary lib(args.component_library);
+    CONFIG.dev = args.dev;
+    build_all_pages(args.input_name, args.output_name);
+  } else {
+    sys::fatal_error("mode not implemented");
   }
 
   return 0;

@@ -15,5 +15,6 @@ else()
   target_compile_definitions(system PRIVATE -DNS_RELEASE=1)
 endif()
 
+target_link_libraries(system PUBLIC cppweb)
 target_include_directories(system PRIVATE include/sys)
 target_include_directories(system INTERFACE include)

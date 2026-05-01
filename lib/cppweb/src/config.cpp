@@ -113,6 +113,7 @@ Config::Config(std::string_view file_name) {
     logger->colors->fatal = colors_o["fatal"].asString();
   if (colors_o.isMember("time"))
     logger->colors->time = colors_o["time"].asString();
+  loaded = true;
 }
 
 void write_string_vector(Json::Value &v, std::string const &name,
@@ -207,3 +208,5 @@ void Config::write(std::string_view file_name) {
   std::ofstream f{std::string(file_name)};
   f << w.write(CUR_JSON);
 }
+
+Config CONFIG = {};

@@ -22,7 +22,7 @@ void create_project(Args::Create const &args) {
   conf.write("cppweb.conf");
   generate_cmake_lists(conf);
   std::filesystem::create_directory(".cppweb");
-  update_cppweb(true);
+  update_cppweb({}, true);
   std::filesystem::create_directory(conf.cpp.build_dir);
   std::filesystem::current_path(conf.cpp.build_dir);
   // TODO: builder

@@ -5,13 +5,13 @@ void Args::usage() {
   std::cerr << "Usage:\n"
             << prog_name
             << " <component_library> <input_file> [options]\n"
-                "Options:\n"
-                "  -c <config_file> : use config file\n"
-                "  -h               : show this message\n"
-                "  -o <output_file> : sets the output file name\n"
-                "  -d               : directory mode\n"
-                "  -gz              : gzips the output\n"
-                "  -dev             : development mode\n";
+               "Options:\n"
+               "  -c <config_file> : use config file\n"
+               "  -h               : show this message\n"
+               "  -o <output_file> : sets the output file name\n"
+               "  -d               : directory mode\n"
+               "  -gz              : gzips the output\n"
+               "  -dev             : development mode\n";
 }
 
 std::string Args::next(int &argc, char **&argv) {
@@ -30,6 +30,8 @@ void Args::parse(int argc, char **argv) {
     auto arg = next(argc, argv);
     if (arg == "-d") {
       mode = DIRECTORY;
+      if (output_name == "out.html")
+        output_name = "";
     } else if (arg == "-dev") {
       dev = true;
     } else if (arg == "-h") {
@@ -63,6 +65,11 @@ void Args::parse(int argc, char **argv) {
   }
   if (input_name == "") {
     std::cerr << "missing input\n";
+    usage();
+    std::exit(EXIT_FAILURE);
+  }
+  if (output_name == "") {
+    std::cerr << "missing output\n";
     usage();
     std::exit(EXIT_FAILURE);
   }
