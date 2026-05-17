@@ -2,6 +2,7 @@
 #include <cppweb/config.hpp>
 #include <cstring>
 #include <sys/poll.h>
+#include <unistd.h>
 
 void start_watcher_loop() {
   auto cppwatcher = CppWatcher(CONFIG.cpp.src_dir);

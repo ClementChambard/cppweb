@@ -1,0 +1,15 @@
+project = "cppweb"
+
+[lookup]
+
+dir = "common"
+extension = ".hpp"
+
+[modules]
+
+api = "lib/api"
+cppweb = "lib/cppweb"
+db = "lib/db"
+fswatch = "lib/fswatch"
+http = "lib/http"
+system = "lib/system"

@@ -4,10 +4,15 @@
 #include <string>
 #include <vector>
 
+/**
+ * @struct Config
+ *
+ * This struct contains the parsed content of the cppweb config file.
+ */
 struct Config {
   Config() = default;
   Config(std::string_view file_name);
-  std::optional<std::string> version; 
+  std::optional<std::string> version;
   struct {
     std::string dir;
   } cppweb;
@@ -35,7 +40,7 @@ struct Config {
   struct {
     std::string root;
   } api;
-  struct logger_t{
+  struct logger_t {
     std::optional<bool> colorize_output;
     std::optional<bool> log_to_file;
     std::optional<std::string> min_level;
@@ -53,13 +58,29 @@ struct Config {
     std::optional<colors_t> colors;
   };
   std::optional<logger_t> logger;
+
+  /**
+   * @method Config::write : void (std::string_view)
+   *
+   * Write the config in a file
+   *
+   * @param file_name the name of the file in which to write the config
+   */
   void write(std::string_view file_name);
 
-  bool dev = false;
-  bool loaded = false;
+  /**
+   * @constmethod Config::cpp_bin : void ()
+   *
+   * Get the full path of the library to load by cppweb
+   *
+   * @return the full path
+   */
   std::string cpp_bin() const {
     return cpp.build_dir + "/lib" + cpp.lib_name + ".so";
   }
+
+  bool dev = false;
+  bool loaded = false;
 };
 
 extern Config CONFIG;

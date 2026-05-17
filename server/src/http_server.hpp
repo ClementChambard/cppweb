@@ -40,6 +40,4 @@ struct HttpServer {
   Router m_router;
 };
 
-void http_client_thread(Connection *);
-
 bool execute_server_command(ServerCommand const &cmd);

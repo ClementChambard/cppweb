@@ -2,3 +2,4 @@ build/
 .cache/
 console.log
 bin/cppweb
+doc.json

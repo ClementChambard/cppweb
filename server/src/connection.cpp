@@ -79,7 +79,6 @@ void http_client_thread(Connection *self) {
       delete self->ws;
       break;
     }
-    // break;
   }
 
   close(self->m_socket);
@@ -89,6 +88,7 @@ void http_client_thread(Connection *self) {
                       self->m_server->m_active_connections.end(), self);
   self->m_server->m_active_connections.erase(it);
   self->m_server->m_connections_mutex.unlock();
-  self->m_thread.detach();
+  std::thread this_thread = std::move(self->m_thread);
   delete self;
+  this_thread.detach();
 }

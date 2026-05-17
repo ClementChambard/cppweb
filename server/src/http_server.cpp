@@ -7,6 +7,7 @@
 #include <string>
 #include <sys/logger.hpp>
 #include <sys/socket.h>
+#include <unistd.h>
 
 void ServerCommand::parse() {}
 
@@ -102,7 +103,9 @@ void HttpServer::stop() {
     return;
   m_running = false;
   m_should_quit = true;
+  sys::info("BEFORE SHUTDOWN");
   shutdown(m_socket, SHUT_RDWR); // this does not shutdown the socket ????
+  sys::info("SHUTDOWN");
   close(m_socket);
   m_server_thread.join();
   m_connections_mutex.lock();

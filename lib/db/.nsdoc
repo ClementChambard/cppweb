@@ -1,0 +1,5 @@
+[lookup]
+
+dir = "include"
+extension = ".hpp"
+recursive = true
